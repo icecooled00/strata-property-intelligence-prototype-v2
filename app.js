@@ -788,7 +788,10 @@
     defer.type = 'button'; defer.dataset.act = 'defer';
     var summary = el('button', 'btn btn-quiet', 'Open decision summary');
     summary.type = 'button'; summary.dataset.act = 'summary';
+    var closeLoop = el('button', 'btn btn-quiet', 'Work status and completion');
+    closeLoop.type = 'button'; closeLoop.dataset.act = 'completion';
     pa.appendChild(assign); pa.appendChild(defer); pa.appendChild(summary);
+    pa.appendChild(closeLoop);
     b5.appendChild(pa);
 
     if (act.deferred) {
@@ -1712,6 +1715,200 @@
     host.appendChild(note);
   }
 
+  /* ---------- RENDER: C01 / C02 COMPLETION ---------------- */
+
+  var Done = { view: 'completion' };   // completion | closed
+
+  var ACTION_FLOW = ['Recommended', 'Assigned', 'In Progress', 'Completed'];
+
+  function renderCompletion() {
+    var host = $('#done-body');
+    if (!host) return;
+    host.textContent = '';
+
+    var issue = byId('issues', heroIssueId());
+    var act = State.action(issue.actionId);
+    var comp = act && act.completion;
+    var owner = comp ? byId('owners', comp.byOwnerId) : null;
+    var photo = comp ? byId('photos', comp.photoId) : null;
+    var isComplete = act && act.status === 'Completed';
+
+    var cr = $('#done-crumb'); cr.textContent = '';
+    var back = el('button', null, 'Back to issue'); back.type = 'button';
+    back.dataset.act = 'back-to-issue';
+    cr.appendChild(back);
+    cr.appendChild(icon('chevron-right'));
+    cr.appendChild(el('span', 'here', Done.view === 'closed' ? 'Closed-loop result' : 'Work completion'));
+
+    if (Done.view === 'closed') return renderC02(host, issue, act, comp, photo);
+    return renderC01(host, issue, act, comp, owner, photo, isComplete);
+  }
+
+  /* C01 — work status and completion evidence */
+  function renderC01(host, issue, act, comp, owner, photo, isComplete) {
+    $('#done-title').textContent = isComplete ? 'Action completed' : 'Work status';
+    $('#done-sub').textContent = act.title + ' · ' + issue.title;
+
+    /* Status progression across the frozen vocabulary */
+    var track = el('div', 'progress-track');
+    var currentIdx = ACTION_FLOW.indexOf(act.status);
+    ACTION_FLOW.forEach(function (st, i) {
+      var n = el('div', 'progress-node' +
+        (i < currentIdx ? ' is-past' : i === currentIdx ? ' is-now' : ''));
+      n.appendChild(el('span', 'd'));
+      n.appendChild(document.createTextNode(st));
+      track.appendChild(n);
+    });
+    host.appendChild(track);
+
+    if (!isComplete) {
+      var pending = el('div', 'card');
+      var pb = el('div', 'block');
+      pb.appendChild(el('h2', null, 'Not yet complete'));
+      pb.appendChild(el('p', 'prose',
+        'This action is currently ' + act.status + '. Completion evidence is recorded once the ' +
+        'assessment has been carried out. You can advance it here to see the closed loop.'));
+      var mark = el('button', 'btn btn-solid', 'Record completion with evidence');
+      mark.type = 'button'; mark.dataset.act = 'mark-complete';
+      mark.style.marginTop = '14px';
+      pb.appendChild(mark);
+      pending.appendChild(pb);
+      host.appendChild(pending);
+      return;
+    }
+
+    var card = el('div', 'result-card');
+    var head = el('div', 'result-head');
+    head.appendChild(icon('check-circle'));
+    head.appendChild(document.createTextNode('Action Completed'));
+    card.appendChild(head);
+
+    var body = el('div', 'result-body');
+    var dl = el('dl', 'result-meta');
+    [['Completed by', owner ? owner.name + ' — ' + owner.role : '—'],
+     ['Completed on', fmtDate(comp.completedOn)],
+     ['Action', act.title],
+     ['Asset', (byId('assets', issue.assetId) || {}).name || '—']].forEach(function (p) {
+      dl.appendChild(el('dt', null, p[0]));
+      dl.appendChild(el('dd', null, p[1]));
+    });
+    body.appendChild(dl);
+
+    body.appendChild(el('h2', null, 'Completion note'));
+    body.appendChild(el('p', 'prose', comp.note));
+
+    body.appendChild(el('h2', null, 'Evidence'));
+    var thumbs = el('div', 'evidence-thumbs');
+    if (photo) {
+      var b = el('button', 'ev-thumb'); b.type = 'button'; b.dataset.photo = photo.id;
+      b.title = photo.caption;
+      b.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo'));
+      thumbs.appendChild(b);
+    }
+    var extra = (comp.evidenceCount || 1) - (photo ? 1 : 0);
+    if (extra > 0) thumbs.appendChild(el('div', 'ev-more', '+' + extra));
+    body.appendChild(thumbs);
+    card.appendChild(body);
+
+    var foot = el('div', 'result-foot');
+    var seeLoop = el('button', 'btn btn-solid', 'See the closed loop');
+    seeLoop.type = 'button'; seeLoop.dataset.act = 'see-closed';
+    var undo = el('button', 'btn', 'Undo completion');
+    undo.type = 'button'; undo.dataset.act = 'undo-complete';
+    foot.appendChild(seeLoop); foot.appendChild(undo);
+    card.appendChild(foot);
+    host.appendChild(card);
+  }
+
+  /* C02 — closed-loop result: what changed, and what was kept */
+  function renderC02(host, issue, act, comp, photo) {
+    var asset = byId('assets', issue.assetId);
+    $('#done-title').textContent = 'Closed-loop result';
+    $('#done-sub').textContent = 'What changed on ' + issue.title + ', and what was kept.';
+
+    var card = el('div', 'card');
+    var b1 = el('div', 'block');
+    b1.appendChild(el('h2', null, 'Resulting attention state'));
+
+    var grid = el('div', 'change-grid');
+    function col(cls, label, rows) {
+      var c = el('div', 'change-col ' + cls);
+      c.appendChild(el('div', 'lbl', label));
+      rows.forEach(function (r) {
+        var row = el('div', 'change-row');
+        row.appendChild(el('span', 'k', r[0]));
+        row.appendChild(el('span', 'v', r[1]));
+        c.appendChild(row);
+      });
+      return c;
+    }
+    grid.appendChild(col('before', 'Before', [
+      ['Severity', issue.severity],
+      ['Condition', 'Unknown'],
+      ['Evidence quality', 'Poor · 38%'],
+      ['Action', 'Recommended']
+    ]));
+    var arrow = el('div', 'change-arrow');
+    arrow.appendChild(icon('chevron-right'));
+    grid.appendChild(arrow);
+    grid.appendChild(col('after', 'After completion', [
+      ['Severity', 'Resolved'],
+      ['Condition', 'Verified'],
+      ['Evidence quality', 'Good · 88%'],
+      ['Action', 'Completed']
+    ]));
+    b1.appendChild(grid);
+    card.appendChild(b1);
+
+    /* S10A §7: completion preserves prior issue and evidence history */
+    var b2 = el('div', 'block');
+    b2.appendChild(el('h2', null, 'History is preserved'));
+    b2.appendChild(el('p', 'quality-why',
+      'Completion does not erase what came before. The original risk, the stale evidence and ' +
+      'the decision trail all remain linked to ' + (asset ? asset.name : 'the asset') + '.'));
+    var hist = el('div', 'history-preserved');
+    (issue.history || []).forEach(function (h) {
+      var r = el('div', 'history-row');
+      r.appendChild(el('span', 'd', fmtDate(h.date)));
+      var mid = el('div');
+      mid.appendChild(el('b', null, h.label));
+      mid.appendChild(el('span', null, h.detail));
+      r.appendChild(mid);
+      hist.appendChild(r);
+    });
+    if (comp) {
+      var r2 = el('div', 'history-row');
+      r2.appendChild(el('span', 'd', fmtDate(comp.completedOn)));
+      var m2 = el('div');
+      m2.appendChild(el('b', null, 'Assessment completed'));
+      m2.appendChild(el('span', null, comp.note));
+      r2.appendChild(m2);
+      hist.appendChild(r2);
+    }
+    b2.appendChild(hist);
+    card.appendChild(b2);
+
+    var b3 = el('div', 'block');
+    b3.appendChild(el('h2', null, 'Evidence remains linked'));
+    var srcs = el('div', 'srclist');
+    (issue.evidenceIds || []).map(function (id) { return byId('evidence', id); })
+      .filter(Boolean).forEach(function (e) { srcs.appendChild(sourceRow(e)); });
+    b3.appendChild(srcs);
+    card.appendChild(b3);
+    host.appendChild(card);
+
+    var foot = el('div', 'result-foot');
+    foot.style.marginTop = '14px';
+    foot.style.border = '1px solid var(--border)';
+    foot.style.borderRadius = 'var(--r-lg)';
+    var ret = el('button', 'btn btn-solid', 'Return to attention');
+    ret.type = 'button'; ret.dataset.route = 'attention';
+    var back2 = el('button', 'btn', 'Back to completion');
+    back2.type = 'button'; back2.dataset.act = 'see-completion';
+    foot.appendChild(ret); foot.appendChild(back2);
+    host.appendChild(foot);
+  }
+
   /* ---------- ACTIONS ------------------------------------- */
 
   function setFieldError(fieldId, errorId, message) {
@@ -1794,13 +1991,14 @@
     Doc.phase = 'select'; Doc.docId = null; Doc.fileName = null;
     Doc.progress = 0; Doc.stepIndex = 0; Doc.forceFail = false; Doc.editing = null;
     resetInspection();
+    Done.view = 'completion';
     renderAll();
     go('attention');
   }
 
   /* ---------- ROUTER -------------------------------------- */
 
-  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents', 'inspection'];
+  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents', 'inspection', 'completion'];
   var SECTIONS = ['why', 'evidence', 'action'];
 
   function heroIssueId() {
@@ -1822,6 +2020,8 @@
       target = '#/documents';
     } else if (route === 'inspection') {
       target = '#/inspection';
+    } else if (route === 'completion') {
+      target = '#/completion';
     } else {
       target = '#/' + (PAGES.indexOf(route) !== -1 ? route : 'attention');
     }
@@ -1852,6 +2052,7 @@
     else if (page === 'summary') { window.scrollTo(0, 0); renderR01(parts[1]); }
     else if (page === 'documents') { window.scrollTo(0, 0); renderDocuments(); }
     else if (page === 'inspection') { window.scrollTo(0, 0); renderInspection(); }
+    else if (page === 'completion') { window.scrollTo(0, 0); renderCompletion(); }
     else if (page === 'issue') {
       var id = parts[1] || heroIssueId();
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
@@ -2074,6 +2275,17 @@
         else if (act.dataset.act === 'back-to-issue') go('issue', issue.id, 'action');
         else if (act.dataset.act === 'export') simulateExport(act);
         else if (act.dataset.act === 'back-to-evidence') go('issue', State.issueId, 'evidence');
+        else if (act.dataset.act === 'completion') { Done.view = 'completion'; go('completion'); }
+        else if (act.dataset.act === 'see-closed') { Done.view = 'closed'; renderCompletion(); window.scrollTo({top:0,behavior:'smooth'}); }
+        else if (act.dataset.act === 'see-completion') { Done.view = 'completion'; renderCompletion(); window.scrollTo({top:0,behavior:'smooth'}); }
+        else if (act.dataset.act === 'mark-complete') {
+          patchAction(issue.actionId, { status: 'Completed', deferred: null });
+          Done.view = 'completion'; renderCompletion();
+        }
+        else if (act.dataset.act === 'undo-complete') {
+          patchAction(issue.actionId, { status: 'Assigned' });
+          Done.view = 'completion'; renderCompletion();
+        }
         else if (act.dataset.act === 'pick-file') $('#file-picker').click();
         else if (act.dataset.act === 'demo-fail') startProcessing('DOC-001', null, true);
         else if (act.dataset.act === 'retry') startProcessing(Doc.docId, Doc.fileName, false);
