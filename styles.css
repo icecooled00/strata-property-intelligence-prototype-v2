@@ -467,15 +467,19 @@ a { color: var(--blue-500); }
 }
 @media (max-width: 640px) {
   .app { grid-template-columns: 1fr; }
-  /* The bar is pinned to the visual viewport. It must clear the home
-     indicator on phones that have one, or the last row of buttons sits
-     underneath it and looks cut off. */
-  .rail { position: fixed; bottom: 0; left: 0; right: 0; top: auto;
-          height: auto; padding: 0; z-index: 50; }
+  /* Sticky at the top, not fixed at the bottom. iOS does not reposition a
+     fixed element until scrolling *stops*, so a fixed bottom bar drops out of
+     sight for the whole gesture and snaps back at the end. Sticky is tied to
+     the scroll container and updates continuously, so it stays put. It also
+     sidesteps the home indicator entirely. */
+  .rail {
+    position: sticky; top: 0; bottom: auto; left: 0; right: 0;
+    height: auto; padding: 0; z-index: 50; align-self: start;
+  }
   .rail-inner {
     flex-direction: row; justify-content: space-around; align-items: center;
-    border-radius: var(--r-lg) var(--r-lg) 0 0; height: auto;
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0 0 var(--r-lg) var(--r-lg); height: auto;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 6px 8px;
     gap: 0;
   }
   .rail-mark, .rail-foot { display: none; }
@@ -485,9 +489,11 @@ a { color: var(--blue-500); }
   .rail-inner .rail-btn { flex: 1 1 0; min-width: 0; width: auto; max-width: 62px; }
   /* viewport-fit=cover puts the page under the notch, so the sides need the
      insets too or content clips when the phone is turned. */
+  /* The bar is above the content now, so the page only needs enough room at
+     the bottom to clear the home indicator. */
   .main {
     padding: 18px max(16px, env(safe-area-inset-right, 0px))
-             calc(104px + env(safe-area-inset-bottom, 0px))
+             calc(28px + env(safe-area-inset-bottom, 0px))
              max(16px, env(safe-area-inset-left, 0px));
   }
   .entry { padding: 24px max(16px, env(safe-area-inset-right, 0px))
@@ -1443,6 +1449,23 @@ dialog.sheet-dialog { width: min(440px, calc(100vw - 24px)); }
 .attn-item.is-resolved:hover { opacity: 1; }
 .attn-item.is-new { box-shadow: inset 3px 0 0 var(--blue-600); }
 .pill-new { background: var(--blue-050); color: var(--blue-700); }
+
+/* iOS zooms in on any focused field whose text is under 16px, and once it has
+   zoomed the page can be dragged side to side with the bar running past the
+   edge. Typing an ID to sign back in was enough to trigger it. 16px on phones
+   is the documented threshold; the desktop sizing is untouched. */
+@media (max-width: 860px) {
+  /* !important because every field is styled through a class (.field input,
+     .dfield select, .q-body textarea and so on), so a bare element selector
+     loses on specificity and the zoom comes back. Scoped to phone widths, and
+     the one rule any new field must not be able to slip past. */
+  input, select, textarea,
+  .field input, .dfield select, .dfield input, .dfield textarea,
+  .cand-edit input, .insp-field select, .insp-field input,
+  .opt-other input[type="text"], .q-body textarea, .q-body input[type="text"] {
+    font-size: 16px !important;
+  }
+}
 
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }
