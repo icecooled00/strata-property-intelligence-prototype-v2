@@ -1,0 +1,285 @@
+{
+  "_note": "Questions for both forms. Edit freely — the app renders whatever is here. Types: radio, checkbox, text, textarea, matrix. Add `other: true` to a radio/checkbox to append an 'Other' free-text option.",
+  "feedback": {
+    "id": "feedback",
+    "title": "How did that go?",
+    "intro": "Five questions, about two minutes. Blunt is more useful than polite — we would rather hear what did not work.",
+    "submitLabel": "Send feedback",
+    "thanks": "Thank you — that is genuinely useful.",
+    "questions": [
+      {
+        "id": "p1",
+        "label": "Did you understand what needed attention, without anyone explaining it?",
+        "type": "radio",
+        "options": [
+          "Immediately",
+          "After a moment",
+          "Took some working out",
+          "Not really",
+          "No"
+        ]
+      },
+      {
+        "id": "p2",
+        "label": "What evidence would you want before you trusted a recommendation like this?",
+        "type": "textarea",
+        "placeholder": "What would need to be true for you to act on it?"
+      },
+      {
+        "id": "p3",
+        "label": "Was anything confusing, or did you get stuck anywhere?",
+        "type": "textarea",
+        "placeholder": "Which screen, and what happened? Blank is fine if nothing did.",
+        "optional": true
+      },
+      {
+        "id": "p4",
+        "label": "Would you put your own property data into something like this?",
+        "type": "radio",
+        "options": [
+          "Yes",
+          "Yes, with some conditions",
+          "Not sure yet",
+          "Probably not",
+          "No"
+        ]
+      },
+      {
+        "id": "p5",
+        "label": "What did you expect to be able to do that you could not?",
+        "type": "textarea",
+        "placeholder": "The thing you went looking for and did not find."
+      }
+    ],
+    "estMinutes": "2"
+  },
+  "questionnaire": {
+    "id": "questionnaire",
+    "title": "Property / Strata Management Validation Questionnaire",
+    "intro": "I am building a property intelligence tool for strata and condo communities and property managers, and I want to validate the real problems before building too much. About 4 minutes. Anything marked optional can be skipped without spoiling the answers.",
+    "submitLabel": "Submit questionnaire",
+    "thanks": "Thank you — this is exactly the input I need.",
+    "sections": [
+      {
+        "after": null,
+        "title": "About you"
+      },
+      {
+        "after": "q2",
+        "title": "Current problems"
+      },
+      {
+        "after": "q6",
+        "title": "Property intelligence"
+      },
+      {
+        "after": "q9",
+        "title": "Trust and AI"
+      },
+      {
+        "after": "q11",
+        "title": "Workflow"
+      },
+      {
+        "after": "q12",
+        "title": "Biggest opportunity"
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "label": "Which best describes you?",
+        "type": "radio",
+        "other": true,
+        "options": [
+          "Property manager",
+          "Strata/condo council or board member",
+          "Realtor",
+          "Real estate investor/owner"
+        ]
+      },
+      {
+        "id": "q2",
+        "label": "Approximately how many properties or buildings do you deal with?",
+        "type": "radio",
+        "options": [
+          "1",
+          "2–10",
+          "11–50",
+          "51+",
+          "Not applicable"
+        ]
+      },
+      {
+        "id": "q3",
+        "label": "What are the top 3 things that are hardest to keep track of for a property or building?",
+        "type": "textarea",
+        "help": "Documents, maintenance, inspections, assets, deadlines, bylaws, vendors, projects, budgets, reserve planning. Three words each is fine."
+      },
+      {
+        "id": "q4",
+        "label": "How confident are you that important property information can be found quickly when needed?",
+        "type": "radio",
+        "options": [
+          "Very confident",
+          "Mostly confident",
+          "Sometimes difficult",
+          "Usually difficult",
+          "Information is scattered everywhere"
+        ]
+      },
+      {
+        "id": "q5",
+        "label": "Where is property information currently stored?",
+        "help": "Select all that apply.",
+        "type": "checkbox",
+        "other": true,
+        "options": [
+          "Property-management software",
+          "Shared drive / SharePoint / Google Drive / Dropbox",
+          "Email",
+          "Spreadsheets",
+          "Paper files",
+          "Accounting system",
+          "Individual staff members' computers"
+        ]
+      },
+      {
+        "id": "q6",
+        "label": "Have you ever discovered an important issue later than you would have liked?",
+        "help": "An overdue inspection, an expiring certificate, a maintenance issue, a component nearing replacement, a missing document, an unexpected major expense.",
+        "type": "radio",
+        "options": [
+          "Yes, more than once",
+          "Yes, once",
+          "No",
+          "Not sure"
+        ]
+      },
+      {
+        "id": "q6b",
+        "label": "If yes, what happened?",
+        "type": "textarea",
+        "optional": true,
+        "placeholder": "One or two lines is plenty."
+      },
+      {
+        "id": "q7",
+        "label": "How useful would it be to have one place that automatically connects documents, building assets, obligations and deadlines, risks and issues, actions and projects, and costs and capital planning?",
+        "type": "radio",
+        "options": [
+          "Extremely useful",
+          "Very useful",
+          "Somewhat useful",
+          "Not very useful",
+          "Not useful"
+        ]
+      },
+      {
+        "id": "q8",
+        "label": "If the system showed \"what needs attention now\", what would you most want it to identify?",
+        "help": "Choose up to 3.",
+        "type": "checkbox",
+        "max": 3,
+        "other": true,
+        "options": [
+          "Upcoming or overdue obligations",
+          "Building components or assets at risk",
+          "Missing or outdated documents",
+          "Maintenance and inspection needs",
+          "Open projects and actions",
+          "Vendor issues",
+          "Unexpected or high costs",
+          "Near-term capital expenses"
+        ]
+      },
+      {
+        "id": "q9",
+        "label": "Would a 1–3 year view of likely major property or capital attention be useful?",
+        "type": "radio",
+        "options": [
+          "Extremely useful",
+          "Very useful",
+          "Somewhat useful",
+          "Not useful"
+        ]
+      },
+      {
+        "id": "q9b",
+        "label": "What decisions would you use that view for?",
+        "type": "text",
+        "optional": true
+      },
+      {
+        "id": "q10",
+        "label": "If AI extracted information from documents or suggested risks and actions, which would you prefer?",
+        "type": "radio",
+        "options": [
+          "AI can update information automatically",
+          "AI should suggest changes and a person confirms them",
+          "AI should only summarise information",
+          "I would not trust AI for this"
+        ]
+      },
+      {
+        "id": "q11",
+        "label": "How important is it that every important recommendation shows where the information came from — the document, inspection, quote or other evidence?",
+        "type": "radio",
+        "options": [
+          "Essential",
+          "Very important",
+          "Nice to have",
+          "Not important"
+        ]
+      },
+      {
+        "id": "q12",
+        "label": "How valuable would these capabilities be?",
+        "type": "matrix",
+        "scale": [
+          "High",
+          "Medium",
+          "Low",
+          "Not needed"
+        ],
+        "rows": [
+          "One calendar for inspections, obligations, maintenance and major work",
+          "Assigning actions to staff and vendors",
+          "Reminders and escalation for important items",
+          "Mobile inspection and photo capture",
+          "Vendor document and certificate tracking",
+          "Board, council or client-ready reports",
+          "Portfolio view across multiple properties",
+          "Evidence showing that work was actually completed"
+        ],
+        "compact": true
+      },
+      {
+        "id": "q13",
+        "label": "If you could fix one property-management problem with technology tomorrow, what would it be?",
+        "type": "textarea",
+        "placeholder": "One sentence is enough."
+      },
+      {
+        "id": "q14",
+        "label": "What software do you use today, and what do you like or dislike about it?",
+        "type": "text",
+        "optional": true
+      },
+      {
+        "id": "q15",
+        "label": "If I had an early version of this product, would you be willing to:",
+        "help": "Select all that apply.",
+        "type": "checkbox",
+        "options": [
+          "Have a 20–30 minute discussion",
+          "Review a prototype",
+          "Try an early pilot",
+          "Introduce me to another property manager, council member or investor",
+          "Not right now"
+        ]
+      }
+    ],
+    "estMinutes": "4-5"
+  }
+}

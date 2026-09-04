@@ -106,6 +106,15 @@
       </button>
 
       <div class="rail-foot">
+        <button class="rail-btn is-form" id="btn-feedback" type="button" aria-label="Give feedback">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-feedback"></use></svg>
+          <span class="rail-label" aria-hidden="true">Give feedback</span>
+        </button>
+        <button class="rail-btn is-form" type="button" data-route="questionnaire"
+                aria-label="Market questionnaire">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-survey"></use></svg>
+          <span class="rail-label" aria-hidden="true">Market questionnaire</span>
+        </button>
         <button class="rail-btn" id="btn-reset" type="button" aria-label="Reset demo">
           <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-reset"></use></svg>
           <span class="rail-label" aria-hidden="true">Reset demo</span>
@@ -300,6 +309,16 @@
       <div class="done-wrap" id="done-body" aria-live="polite"></div>
     </section>
 
+    <!-- ========================================================
+         MARKET QUESTIONNAIRE
+         Full page rather than a modal: too long for one, and it has a
+         shareable URL. Research capture, kept out of the product flow.
+         ======================================================== -->
+    <section id="page-questionnaire" class="page" hidden>
+      <nav class="crumb" id="form-crumb" aria-label="Breadcrumb"></nav>
+      <div class="form-wrap" id="questionnaire-body" aria-live="polite"></div>
+    </section>
+
   </main>
 </div>
 
@@ -388,6 +407,16 @@
   <div class="dlg-foot">
     <button class="btn" type="button" data-close>Close</button>
   </div>
+</dialog>
+
+<dialog id="dlg-feedback" class="form-dialog" aria-labelledby="dlg-feedback-title">
+  <div class="dlg-head">
+    <h2 id="dlg-feedback-title">Feedback</h2>
+    <button class="dlg-close" type="button" data-close aria-label="Close">
+      <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+    </button>
+  </div>
+  <div class="dlg-body" id="feedback-body" aria-live="polite"></div>
 </dialog>
 
 <input type="file" id="file-picker" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden>

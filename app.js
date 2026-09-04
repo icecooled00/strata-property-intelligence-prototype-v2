@@ -1962,6 +1962,325 @@
     host.appendChild(foot);
   }
 
+  /* ---------- RENDER: FORMS ------------------------------- */
+  /* Questions live in data/forms.json so wording can change without code.
+     Answers autosave to localStorage, so a half-finished form survives a
+     reload or an accidental navigation. */
+
+  var FORMS = null;
+  var FormState = {};           // formId -> { answers, submitted }
+  var KEY_FORMS = 'strata.v2.forms';
+
+  function loadForms() {
+    if (FORMS) return Promise.resolve(FORMS);
+    return fetch('data/forms.json', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { FORMS = j; return j; });
+  }
+
+  function formState(id) {
+    if (!FormState[id]) {
+      var saved = State.read(KEY_FORMS, {})[id];
+      FormState[id] = saved || { answers: {}, submitted: false };
+    }
+    return FormState[id];
+  }
+  function saveForms() {
+    var all = {};
+    Object.keys(FormState).forEach(function (k) { all[k] = FormState[k]; });
+    State.write(KEY_FORMS, all);
+  }
+
+  function isAnswered(q, v) {
+    if (q.type === 'checkbox') return Array.isArray(v) && v.length > 0;
+    if (q.type === 'matrix') return v && Object.keys(v).length === (q.rows || []).length;
+    return v != null && String(v).trim() !== '';
+  }
+
+  function formProgress(def, st) {
+    var required = def.questions.filter(function (q) { return !q.optional; });
+    var done = required.filter(function (q) { return isAnswered(q, st.answers[q.id]); });
+    return { done: done.length, total: required.length,
+             pct: required.length ? Math.round(done.length / required.length * 100) : 100 };
+  }
+
+  function renderQuestion(def, q, index, st, onChange) {
+    var v = st.answers[q.id];
+    var box = el('div', 'q' + (isAnswered(q, v) ? ' is-answered' : ''));
+
+    var lab = el('div', 'q-label');
+    lab.appendChild(el('span', 'q-num', String(index) + '.'));
+    lab.appendChild(document.createTextNode(q.label));
+    if (q.optional) lab.appendChild(el('span', 'q-optional', 'Optional'));
+    box.appendChild(lab);
+    if (q.help) box.appendChild(el('div', 'q-help', q.help));
+
+    var body = el('div', 'q-body');
+
+    if (q.type === 'radio' || q.type === 'checkbox') {
+      var multi = q.type === 'checkbox';
+      var picked = multi ? (Array.isArray(v) ? v.slice() : []) : v;
+      var atMax = multi && q.max && picked.length >= q.max;
+
+      (q.options || []).forEach(function (opt) {
+        var on = multi ? picked.indexOf(opt) !== -1 : picked === opt;
+        var disabled = atMax && !on;
+        var row = el('label', 'opt' + (on ? ' is-picked' : '') + (disabled ? ' is-disabled' : ''));
+        var input = el('input');
+        input.type = multi ? 'checkbox' : 'radio';
+        input.name = def.id + '-' + q.id;
+        input.checked = on;
+        input.disabled = disabled;
+        input.addEventListener('change', function () {
+          if (multi) {
+            var next = picked.filter(function (x) { return x !== opt; });
+            if (input.checked) next.push(opt);
+            st.answers[q.id] = next;
+          } else {
+            st.answers[q.id] = opt;
+          }
+          onChange();
+        });
+        row.appendChild(input);
+        row.appendChild(el('span', null, opt));
+        body.appendChild(row);
+      });
+
+      if (q.other) {
+        var otherKey = q.id + '_other';
+        var wrap = el('div', 'opt-other');
+        wrap.appendChild(el('span', null, 'Other'));
+        var oi = el('input');
+        oi.type = 'text';
+        oi.placeholder = 'Tell us';
+        oi.value = st.answers[otherKey] || '';
+        oi.setAttribute('aria-label', 'Other, for: ' + q.label);
+        oi.addEventListener('input', function () {
+          st.answers[otherKey] = oi.value;
+          saveForms();
+        });
+        wrap.appendChild(oi);
+        body.appendChild(wrap);
+      }
+
+      if (multi && q.max) {
+        var note = el('div', 'max-note' + (atMax ? ' is-hit' : ''),
+          picked.length + ' of ' + q.max + ' selected');
+        body.appendChild(note);
+      }
+
+    } else if (q.type === 'matrix') {
+      var picks = (v && typeof v === 'object') ? v : {};
+      var wrapM = el('div', 'matrix');
+      var table = el('table');
+      var thead = el('thead');
+      var htr = el('tr');
+      htr.appendChild(el('th', null, ''));
+      (q.scale || []).forEach(function (s) { htr.appendChild(el('th', null, s)); });
+      thead.appendChild(htr);
+      table.appendChild(thead);
+      var tbody = el('tbody');
+      (q.rows || []).forEach(function (rowLabel, ri) {
+        var tr = el('tr', picks[rowLabel] ? 'is-answered' : '');
+        tr.appendChild(el('td', null, rowLabel));
+        (q.scale || []).forEach(function (s) {
+          var td = el('td');
+          var input = el('input');
+          input.type = 'radio';
+          input.name = def.id + '-' + q.id + '-' + ri;
+          input.checked = picks[rowLabel] === s;
+          input.setAttribute('aria-label', rowLabel + ': ' + s);
+          input.addEventListener('change', function () {
+            var next = Object.assign({}, picks);
+            next[rowLabel] = s;
+            st.answers[q.id] = next;
+            onChange();
+          });
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrapM.appendChild(table);
+      body.appendChild(wrapM);
+
+    } else {
+      var field = el(q.type === 'text' ? 'input' : 'textarea');
+      if (q.type === 'text') field.type = 'text';
+      field.value = v || '';
+      if (q.placeholder) field.placeholder = q.placeholder;
+      field.setAttribute('aria-label', q.label);
+      field.addEventListener('input', function () {
+        st.answers[q.id] = field.value;
+        saveForms();
+      });
+      field.addEventListener('blur', onChange);
+      body.appendChild(field);
+    }
+
+    box.appendChild(body);
+    return box;
+  }
+
+  function renderForm(defId, host, opts) {
+    opts = opts || {};
+    var def = FORMS[defId];
+    if (!def || !host) return;
+    var st = formState(defId);
+    host.textContent = '';
+
+    if (st.submitted) {
+      var done = el('div', 'form-done');
+      var tick = el('div', 'tick');
+      tick.appendChild(icon('check-circle'));
+      done.appendChild(tick);
+      done.appendChild(el('h2', null, 'Thank you'));
+      done.appendChild(el('p', null, def.thanks));
+      var back = el('button', 'btn btn-solid',
+        opts.modal ? 'Close' : 'Back to the prototype');
+      back.type = 'button';
+      back.dataset.act = opts.modal ? 'close-feedback' : 'back-from-form';
+      done.appendChild(back);
+      host.appendChild(done);
+      return;
+    }
+
+    var intro = el('div', 'form-intro');
+    if (!opts.modal) intro.appendChild(el('h1', null, def.title));
+    intro.appendChild(el('p', null, def.intro));
+    var meta = el('div', 'form-meta');
+    meta.appendChild(el('span', 'pill', 'About ' + def.estMinutes + ' minutes'));
+    meta.appendChild(el('span', null, 'Your answers save as you go.'));
+    intro.appendChild(meta);
+    host.appendChild(intro);
+
+    var prog = el('div', 'form-progress');
+    var bar = el('div', 'form-progress-bar');
+    var fill = el('span', 'form-progress-fill');
+    bar.appendChild(fill);
+    prog.appendChild(bar);
+    var ptext = el('div', 'form-progress-text');
+    var pleft = el('span'); var pright = el('span');
+    ptext.appendChild(pleft); ptext.appendChild(pright);
+    prog.appendChild(ptext);
+    host.appendChild(prog);
+
+    function refresh() {
+      var p = formProgress(def, st);
+      fill.style.width = p.pct + '%';
+      pleft.textContent = p.done + ' of ' + p.total + ' answered';
+      pright.textContent = p.pct === 100 ? 'Ready to send' : (p.total - p.done) + ' to go';
+    }
+
+    var onChange = function () {
+      saveForms();
+      renderForm(defId, host, opts);   // re-render keeps picked states honest
+    };
+
+    var sections = def.sections || [];
+    var startSection = sections.filter(function (s) { return !s.after; })[0];
+    if (startSection) host.appendChild(el('p', 'form-section-head', startSection.title));
+
+    def.questions.forEach(function (q, i) {
+      host.appendChild(renderQuestion(def, q, i + 1, st, onChange));
+      var next = sections.filter(function (s) { return s.after === q.id; })[0];
+      if (next) host.appendChild(el('p', 'form-section-head', next.title));
+    });
+
+    var foot = el('div', 'form-foot');
+    var submit = el('button', 'btn btn-solid', def.submitLabel);
+    submit.type = 'button';
+    submit.dataset.formSubmit = defId;
+    foot.appendChild(submit);
+    foot.appendChild(el('span', 'note',
+      'You can send this with questions unanswered — partial answers are still useful.'));
+    host.appendChild(foot);
+
+    var err = el('div', 'form-error');
+    err.id = 'form-error-' + defId;
+    err.hidden = true;
+    err.appendChild(icon('alert'));
+    err.appendChild(el('span', null, ''));
+    host.appendChild(err);
+
+    refresh();
+  }
+
+  function submitForm(defId) {
+    var def = FORMS[defId];
+    var st = formState(defId);
+    var p = formProgress(def, st);
+    var errBox = $('#form-error-' + defId);
+
+    if (p.done === 0) {
+      if (errBox) {
+        errBox.hidden = false;
+        errBox.querySelector('span').textContent =
+          'Nothing has been answered yet. Answer at least one question first.';
+      }
+      return;
+    }
+
+    var payload = {
+      form: defId,
+      name: (State.session && State.session.name) || '',
+      email: (State.session && State.session.email) || '',
+      complete: p.done === p.total,
+      answers: Object.assign({ _form: defId }, st.answers)
+    };
+
+    var btn = $('[data-form-submit="' + defId + '"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function () {
+      st.submitted = true;
+      saveForms();
+      track('form_submitted', { form: defId, complete: payload.complete });
+      renderForm(defId, defId === 'feedback' ? $('#feedback-body') : $('#questionnaire-body'),
+                 { modal: defId === 'feedback' });
+    }).catch(function (e) {
+      if (btn) { btn.disabled = false; btn.textContent = def.submitLabel; }
+      if (errBox) {
+        errBox.hidden = false;
+        errBox.querySelector('span').textContent =
+          'That did not send. Your answers are saved — try again in a moment.';
+      }
+      console.log('[form] submit failed:', e && e.message);
+    });
+  }
+
+  function openFeedback() {
+    loadForms().then(function () {
+      renderForm('feedback', $('#feedback-body'), { modal: true });
+      openDialog('dlg-feedback');
+      track('form_opened', { form: 'feedback' });
+    });
+  }
+
+  function renderQuestionnaire() {
+    var cr = $('#form-crumb');
+    if (cr) {
+      cr.textContent = '';
+      var back = el('button', null, 'Back to the prototype');
+      back.type = 'button'; back.dataset.route = 'attention';
+      cr.appendChild(back);
+      cr.appendChild(icon('chevron-right'));
+      cr.appendChild(el('span', 'here', 'Questionnaire'));
+    }
+    loadForms().then(function () {
+      renderForm('questionnaire', $('#questionnaire-body'), {});
+      trackOnce('form_opened_questionnaire', null);
+    });
+  }
+
   /* ---------- ACTIONS ------------------------------------- */
 
   function setFieldError(fieldId, errorId, message) {
@@ -2042,6 +2361,8 @@
        so a facilitator resetting mid-demo is not thrown back to the gate.
        "Exit prototype" (the viewer button) clears the session. */
     track('reset', null);
+    /* Deliberately does not clear form answers — resetting the demo should
+       never destroy feedback someone is part-way through writing. */
     State.resetDemo();
     clearDocTimers();
     Doc.phase = 'select'; Doc.docId = null; Doc.fileName = null;
@@ -2054,7 +2375,7 @@
 
   /* ---------- ROUTER -------------------------------------- */
 
-  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents', 'inspection', 'completion'];
+  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents', 'inspection', 'completion', 'questionnaire'];
   var SECTIONS = ['why', 'evidence', 'action'];
 
   function heroIssueId() {
@@ -2078,6 +2399,8 @@
       target = '#/inspection';
     } else if (route === 'completion') {
       target = '#/completion';
+    } else if (route === 'questionnaire') {
+      target = '#/questionnaire';
     } else {
       target = '#/' + (PAGES.indexOf(route) !== -1 ? route : 'attention');
     }
@@ -2112,6 +2435,7 @@
     else if (page === 'documents') { window.scrollTo(0, 0); renderDocuments(); }
     else if (page === 'inspection') { window.scrollTo(0, 0); renderInspection(); }
     else if (page === 'completion') { window.scrollTo(0, 0); renderCompletion(); }
+    else if (page === 'questionnaire') { window.scrollTo(0, 0); renderQuestionnaire(); }
     else if (page === 'issue') {
       var id = parts[1] || heroIssueId();
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
@@ -2246,10 +2570,14 @@
         });
       });
     $('#btn-reset').addEventListener('click', resetDemo);
+    $('#btn-feedback').addEventListener('click', openFeedback);
     $('#btn-viewer').addEventListener('click', exitApp);
 
     document.addEventListener('click', function (e) {
       var t = e.target;
+
+      var fs = t.closest('[data-form-submit]');
+      if (fs) { submitForm(fs.dataset.formSubmit); return; }
 
       var close = t.closest('[data-close]');
       if (close) { closeDialog(close); return; }
@@ -2351,6 +2679,8 @@
           Done.view = 'completion'; renderCompletion();
         }
         else if (act.dataset.act === 'pick-file') $('#file-picker').click();
+        else if (act.dataset.act === 'close-feedback') $('#dlg-feedback').close();
+        else if (act.dataset.act === 'back-from-form') go('attention');
         else if (act.dataset.act === 'demo-fail') startProcessing('DOC-001', null, true);
         else if (act.dataset.act === 'retry') startProcessing(Doc.docId, Doc.fileName, false);
         else if (act.dataset.act === 'choose-other') {
