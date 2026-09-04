@@ -389,11 +389,11 @@ a { color: var(--blue-500); }
 
 /* Building status by area — A01 uses compact bars */
 .bsa-figure {
-  border-radius: var(--r-md); overflow: hidden; background: var(--surface-2);
-  aspect-ratio: 4 / 5; margin-bottom: 4px;
+  border-radius: var(--r-md); overflow: hidden; background: #fff;
+  aspect-ratio: 4 / 5; min-height: 240px; margin-bottom: 4px;
 }
 .bsa-figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.bsa-body { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 16px; padding: 16px 20px 18px; }
+.bsa-body { display: grid; grid-template-columns: minmax(140px,0.85fr) minmax(0,1.15fr); gap: 16px; padding: 16px 20px 18px; }
 
 .area-row {
   display: grid; grid-template-columns: minmax(0,1fr) 54px 34px;

@@ -33,7 +33,7 @@
       "storeys": 22,
       "heroImage": "assets/images/hero-building-exterior.jpg",
       "elevationImage": "assets/images/property-north-elevation.jpg",
-      "cutoutImage": "assets/images/building-cutout.png",
+      "cutoutImage": "assets/images/building-cutout.jpg",
       "lastUpdated": "2026-09-03",
       "health": {
         "overall": 71,
