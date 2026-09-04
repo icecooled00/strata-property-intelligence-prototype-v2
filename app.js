@@ -2247,11 +2247,32 @@
       return;
     }
 
+    /* Send a human-readable version alongside the raw answers, so the Slack
+       message can show the actual questions without the function needing to
+       know what is in forms.json. */
+    var readable = def.questions
+      .filter(function (q) { return isAnswered(q, st.answers[q.id]); })
+      .map(function (q) {
+        var v = st.answers[q.id], text;
+        if (Array.isArray(v)) {
+          text = v.join(', ');
+        } else if (v && typeof v === 'object') {
+          text = Object.keys(v).map(function (k) { return '· ' + k + ' — ' + v[k]; }).join(String.fromCharCode(10));
+        } else {
+          text = String(v);
+        }
+        var other = st.answers[q.id + '_other'];
+        if (other && String(other).trim()) text += ' (Other: ' + other + ')';
+        return { q: q.label, a: text };
+      });
+
     var payload = {
       form: defId,
+      formTitle: def.title,
       name: (State.session && State.session.name) || '',
       email: (State.session && State.session.email) || '',
       complete: p.done === p.total,
+      readable: readable,
       answers: Object.assign({ _form: defId }, st.answers)
     };
 

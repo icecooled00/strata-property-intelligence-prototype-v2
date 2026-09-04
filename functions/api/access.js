@@ -19,6 +19,7 @@
  */
 
 const MAX_FIELD = 200;
+const SEP = String.fromCharCode(10);
 
 // Rolling window. Override with the LOG_MAX_ROWS variable in Cloudflare.
 const DEFAULT_MAX_ROWS = 1000;
@@ -92,6 +93,31 @@ export async function onRequestPost(context) {
     }
   } else {
     console.log('[access] ACCESS_DB not bound; record dropped');
+  }
+
+  /* Tell Slack someone opened the prototype, so entries are noticed rather
+     than discovered later by querying. Never blocks the response. */
+  if (env.SLACK_WEBHOOK) {
+    const who = [record.name, record.email].filter(Boolean).join(' - ') || 'Anonymous';
+    try {
+      await fetch(env.SLACK_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: 'Prototype opened by ' + who,
+          blocks: [{
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '*Prototype opened*' + SEP + who + SEP +
+                    (record.country || '??') + ' - ' + record.ip
+            }
+          }]
+        })
+      });
+    } catch (err) {
+      console.log('[access] slack failed:', err && err.message);
+    }
   }
 
   return new Response(null, { status: 204 });
