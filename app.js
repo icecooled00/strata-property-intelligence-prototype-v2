@@ -880,7 +880,7 @@
     /* 2 — urgency / evidence / cost, scannable at a glance */
     var tiles = el('div', 'r01-tiles');
     function tile(cls, k, v, s, warn) {
-      var t = el('div', 'r01-tile ' + cls);
+      var t = el('div', 'r01-tile ' + cls + (warn ? '' : ' is-calm'));
       t.appendChild(el('div', 'k', k));
       t.appendChild(el('div', 'v' + (warn ? ' warn' : ''), v));
       t.appendChild(el('div', 's', s));
@@ -896,7 +896,7 @@
     tiles.appendChild(tile('t-evidence', 'Evidence quality',
       q ? q.label + ' · ' + q.pct + '%' : 'Unknown',
       primaryEv ? 'Latest verification ' + primaryEv.ageLabel : 'No dated verification on file',
-      true));
+      !q || q.pct < 70));
     tiles.appendChild(tile('t-cost', 'Cost',
       act ? moneyRange(act.cost) : 'Not costed',
       issue.exposure ? 'Recommended action. Repair exposure ' + moneyRange(issue.exposure)

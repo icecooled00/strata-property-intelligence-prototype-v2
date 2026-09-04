@@ -807,6 +807,9 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 .r01-tile.t-urgency  { border-top-color: var(--poor-500); }
 .r01-tile.t-evidence { border-top-color: var(--poor-500); }
 .r01-tile.t-cost     { border-top-color: var(--fair-600); }
+/* Declared last so it wins at equal specificity: a tile with nothing to warn
+   about must not wear an alarm colour. */
+.r01-tile.is-calm    { border-top-color: var(--border-2); }
 .r01-tile .k {
   font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
   text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
