@@ -845,16 +845,27 @@
 
     if (hasBooted) { doScroll(behavior); return; }
 
-    /* Cold load: position once the page has settled, then correct again in
-       case a late image shifted the layout under us. */
+    /* Cold load: the layout keeps settling after window.load, so a single
+       positioning pass lands wide. Re-apply until the destination stops
+       moving, then stop. Cheap, and self-correcting whatever reflows. */
     function settle() {
-      requestAnimationFrame(function () {
+      var last = -1, tries = 0;
+      (function correct() {
+        var target = document.getElementById('sec-' + section);
+        var want = section === 'why' ? 0
+          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - OFFSET);
         doScroll('auto');
-        setTimeout(function () { doScroll('auto'); }, 300);
-      });
+        tries++;
+        if (Math.abs(want - last) > 2 && tries < 12) {
+          last = want;
+          setTimeout(correct, 120);
+        }
+      })();
     }
-    if (document.readyState === 'complete') settle();
-    else window.addEventListener('load', settle, { once: true });
+    if (document.readyState === 'complete') requestAnimationFrame(settle);
+    else window.addEventListener('load', function () {
+      requestAnimationFrame(settle);
+    }, { once: true });
   }
 
   /* ---------- RENDER: R01 DECISION SUMMARY ---------------- */
