@@ -188,25 +188,136 @@
       <dl class="p00-facts" id="p00-facts"></dl>
     </section>
 
-    <!-- Wave 2 and Wave 4 land here. -->
-    <section id="page-evidence" class="page" hidden>
-      <div class="stub card card-pad">
-        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-evidence"></use></svg>
-        <b>Evidence workspace arrives in Wave 2</b>
-        <p>IW02 and the source-preview overlay are built once the continuous issue workspace lands.</p>
-      </div>
-    </section>
+    <!-- ========================================================
+         IW01 / IW02 / IW03 — CONTINUOUS ISSUE WORKSPACE
+         UC-P03, UC-P04, UC-P05. F02: one continuous workspace with
+         anchored sections, not three separate pages.
+         ======================================================== -->
+    <section id="page-issue" class="page" hidden>
+      <nav class="crumb" id="iw-crumb" aria-label="Breadcrumb"></nav>
 
-    <section id="page-action" class="page" hidden>
-      <div class="stub card card-pad">
-        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-action"></use></svg>
-        <b>Action workspace arrives in Wave 2</b>
-        <p>IW03 with the Assign and Defer overlays is built alongside the issue workspace.</p>
+      <div class="iw-head" id="iw-head"></div>
+
+      <div class="iw-anchors" role="tablist" aria-label="Issue sections">
+        <button class="iw-anchor" type="button" data-anchor="why" role="tab">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-question"></use></svg>
+          Why
+        </button>
+        <button class="iw-anchor" type="button" data-anchor="evidence" role="tab">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-evidence"></use></svg>
+          Evidence
+        </button>
+        <button class="iw-anchor" type="button" data-anchor="action" role="tab">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-action"></use></svg>
+          Action
+        </button>
+      </div>
+
+      <div class="iw-section" id="sec-why">
+        <p class="sec-label">Why / Context</p>
+        <div class="card" id="iw01"></div>
+      </div>
+
+      <div class="iw-section" id="sec-evidence">
+        <p class="sec-label">Evidence — what we know</p>
+        <div class="card" id="iw02"></div>
+      </div>
+
+      <div class="iw-section" id="sec-action">
+        <p class="sec-label">Recommended action</p>
+        <div class="card" id="iw03"></div>
       </div>
     </section>
 
   </main>
 </div>
+
+<!-- ============================================================
+     OVERLAYS — native <dialog> for focus trap, Esc and backdrop
+     ============================================================ -->
+
+<!-- IW03-A Assign -->
+<dialog id="dlg-assign" aria-labelledby="dlg-assign-title">
+  <form method="dialog" id="form-assign">
+    <div class="dlg-head">
+      <h2 id="dlg-assign-title">Assign This Action</h2>
+      <button class="dlg-close" type="button" data-close aria-label="Close">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <div class="dfield">
+        <label for="as-owner">Assign to *</label>
+        <select id="as-owner" required></select>
+      </div>
+      <div class="dfield">
+        <label for="as-vendor">Vendor / Contact</label>
+        <select id="as-vendor"></select>
+      </div>
+      <div class="dfield">
+        <label for="as-due">Due date</label>
+        <input id="as-due" type="date">
+      </div>
+      <div class="dfield" style="margin-bottom:0">
+        <label for="as-note">Add note (optional)</label>
+        <textarea id="as-note" placeholder="Enter note…"></textarea>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn-solid" type="submit" value="assign">Assign</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- IW03-D Defer -->
+<dialog id="dlg-defer" aria-labelledby="dlg-defer-title">
+  <form method="dialog" id="form-defer">
+    <div class="dlg-head">
+      <h2 id="dlg-defer-title">Defer This Action</h2>
+      <button class="dlg-close" type="button" data-close aria-label="Close">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <div class="dfield">
+        <label for="df-until">Defer until</label>
+        <input id="df-until" type="date">
+      </div>
+      <div class="dfield">
+        <label for="df-reason">Reason</label>
+        <select id="df-reason"></select>
+      </div>
+      <div class="dfield">
+        <label for="df-note">Note (optional)</label>
+        <textarea id="df-note" placeholder="Enter note…"></textarea>
+      </div>
+      <label class="ack">
+        <input type="checkbox" id="df-ack" required>
+        <span><b>Acknowledge risk.</b> Deferring does not resolve this issue. It stays
+        open and continues to appear in Attention.</span>
+      </label>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn-solid" type="submit" value="defer">Defer</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- EV-P Source preview / photo detail -->
+<dialog id="dlg-source" class="wide" aria-labelledby="dlg-source-title">
+  <div class="dlg-head">
+    <h2 id="dlg-source-title">Source</h2>
+    <button class="dlg-close" type="button" data-close aria-label="Close">
+      <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+    </button>
+  </div>
+  <div class="dlg-body" id="dlg-source-body"></div>
+  <div class="dlg-foot">
+    <button class="btn" type="button" data-close>Close</button>
+  </div>
+</dialog>
 
 <script src="app.js"></script>
 </body>
