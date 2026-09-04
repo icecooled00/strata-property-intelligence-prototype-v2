@@ -105,6 +105,12 @@
         <span class="rail-label" aria-hidden="true">Action</span>
       </button>
 
+      <!-- Mobile only. The rail foot cannot fit in a bottom bar, so on a phone
+           those four live behind this button instead of disappearing. -->
+      <button class="rail-btn rail-more" id="btn-more" type="button" aria-label="More options">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-more"></use></svg>
+      </button>
+
       <div class="rail-foot">
         <button class="rail-btn is-form" id="btn-feedback" type="button" aria-label="Give feedback">
           <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-feedback"></use></svg>
@@ -417,6 +423,37 @@
     </button>
   </div>
   <div class="dlg-body" id="feedback-body" aria-live="polite"></div>
+</dialog>
+
+<!-- Phone equivalent of the rail foot. Labelled rows rather than bare icons,
+     because a bottom bar has no room for hover tooltips. -->
+<dialog id="dlg-more" class="sheet-dialog" aria-labelledby="dlg-more-title">
+  <div class="dlg-head">
+    <h2 id="dlg-more-title">More</h2>
+    <button class="dlg-close" type="button" data-close aria-label="Close">
+      <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+    </button>
+  </div>
+  <div class="dlg-body">
+    <div class="sheet-list">
+      <button class="sheet-item" type="button" data-more="feedback">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-feedback"></use></svg>
+        <span><b>Give feedback</b><i>Five questions, about two minutes</i></span>
+      </button>
+      <button class="sheet-item" type="button" data-more="questionnaire">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-survey"></use></svg>
+        <span><b>Market questionnaire</b><i>Help shape what gets built</i></span>
+      </button>
+      <button class="sheet-item" type="button" data-more="reset">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-reset"></use></svg>
+        <span><b>Reset demo</b><i>Put every change back to the start</i></span>
+      </button>
+      <button class="sheet-item" type="button" data-more="exit">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-user"></use></svg>
+        <span><b>Exit prototype</b><i>Sign out and return to the entry screen</i></span>
+      </button>
+    </div>
+  </div>
 </dialog>
 
 <input type="file" id="file-picker" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden>

@@ -793,6 +793,10 @@
       dl.appendChild(d);
     }
     row('Owner', owner ? owner.name + ' — ' + owner.role : 'Unassigned');
+    if (act.vendorId) {
+      /* Picked in the assign overlay; it used to be recorded and never shown. */
+      row('Vendor', (byId('owners', act.vendorId) || {}).name || '—');
+    }
     row('Target date', fmtDate(act.targetDate) + ' (in ' + issue.dueInDays + ' days)');
     row('Est. cost', moneyRange(act.cost), true, act.cost.confidence + ' confidence');
 
@@ -902,6 +906,34 @@
 
   var hasBooted = false;
 
+  /* The browser restores the previous scroll position after load, which lands
+     on top of the anchor positioning below and wins — that is why a deep link
+     opened cold sat at the top of the page while the pill claimed otherwise.
+     The app decides where a route starts, so take the restore back. */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  /* Keep the pills honest once the reader takes over and scrolls by hand.
+     Without this the pill keeps naming wherever they arrived from. */
+  var spyPending = false;
+  function updateAnchorSpy() {
+    var anchors = $$('.iw-anchor');
+    if (!anchors.length) return;
+    var here = 'why';
+    SECTIONS.forEach(function (s) {
+      if (s === 'why') return;
+      var t = document.getElementById('sec-' + s);
+      if (t && t.getBoundingClientRect().top <= 96) here = s;
+    });
+    anchors.forEach(function (a) {
+      a.setAttribute('aria-current', String(a.dataset.anchor === here));
+    });
+  }
+  window.addEventListener('scroll', function () {
+    if (spyPending) return;
+    spyPending = true;
+    requestAnimationFrame(function () { spyPending = false; updateAnchorSpy(); });
+  }, { passive: true });
+
   function setAnchor(section) {
     if (SECTIONS.indexOf(section) === -1) section = 'why';
     $$('.iw-anchor').forEach(function (a) {
@@ -926,27 +958,47 @@
 
     if (hasBooted) { doScroll(behavior); return; }
 
-    /* Cold load: the layout keeps settling after window.load, so a single
-       positioning pass lands wide. Re-apply until the destination stops
-       moving, then stop. Cheap, and self-correcting whatever reflows. */
+    /* Cold load. The page is short until the photographs have sized, so an
+       early pass computes a destination past the bottom of a not-yet-tall
+       document and gets clamped to the top. The previous version stopped as
+       soon as two passes agreed, which happens within a frame or two — before
+       any image has loaded — and left the reader at the top of the page.
+
+       So: reposition on the events that actually change the layout, and stop
+       only when the reader takes over or the deadline passes. */
     function settle() {
-      var last = -1, tries = 0;
-      (function correct() {
-        var target = document.getElementById('sec-' + section);
-        var want = section === 'why' ? 0
-          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - OFFSET);
+      var done = false;
+      function stop() { done = true; }
+      /* Any deliberate scroll wins immediately — never fight the reader. */
+      ['wheel', 'touchstart', 'keydown'].forEach(function (e) {
+        window.addEventListener(e, stop, { once: true, passive: true });
+      });
+
+      function place() {
+        if (done) return;
         doScroll('auto');
-        tries++;
-        if (Math.abs(want - last) > 2 && tries < 12) {
-          last = want;
-          setTimeout(correct, 120);
-        }
-      })();
+      }
+
+      place();
+      requestAnimationFrame(place);
+
+      /* Images are what move the target, so re-place as each one sizes. */
+      $$('#page-issue img').forEach(function (im) {
+        if (im.complete) return;
+        im.addEventListener('load', place, { once: true });
+        im.addEventListener('error', place, { once: true });
+      });
+
+      window.addEventListener('load', place, { once: true });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+      [120, 300, 600, 1000, 1500].forEach(function (ms) { setTimeout(place, ms); });
+      setTimeout(stop, 1800);
     }
-    if (document.readyState === 'complete') requestAnimationFrame(settle);
-    else window.addEventListener('load', function () {
-      requestAnimationFrame(settle);
-    }, { once: true });
+    /* Started directly rather than inside requestAnimationFrame: rAF does not
+       fire while a tab is in the background, and a shared link is often opened
+       into one. settle() schedules its own frame for the normal case. */
+    if (document.readyState === 'complete') settle();
+    else window.addEventListener('load', settle, { once: true });
   }
 
   /* ---------- RENDER: R01 DECISION SUMMARY ---------------- */
@@ -1083,6 +1135,7 @@
     kvrow('Decision', act && act.status !== 'Recommended' ? act.status : 'Awaiting decision',
       act && act.status !== 'Recommended' ? 'pos' : 'neg');
     kvrow('Owner', owner ? owner.name + ' (' + owner.role + ')' : 'Unassigned');
+    if (act && act.vendorId) kvrow('Vendor', (byId('owners', act.vendorId) || {}).name || '—');
     kvrow('Due date', act ? fmtDate(act.targetDate) : '—');
     kvrow('Est. cost', act ? moneyRange(act.cost) : '—');
     kvrow('Status',
@@ -1781,7 +1834,11 @@
     var issue = byId('issues', heroIssueId());
     var act = State.action(issue.actionId);
     var comp = act && act.completion;
-    var owner = comp ? byId('owners', comp.byOwnerId) : null;
+    /* Whoever the action is assigned to now is who completed it. The frozen
+       completion record carries the canonical owner, which is only right
+       until someone reassigns the action in the demo. */
+    var owner = act && act.ownerId ? byId('owners', act.ownerId)
+              : comp ? byId('owners', comp.byOwnerId) : null;
     var photo = comp ? byId('photos', comp.photoId) : null;
     var isComplete = act && act.status === 'Completed';
 
@@ -1837,10 +1894,13 @@
 
     var body = el('div', 'result-body');
     var dl = el('dl', 'result-meta');
+    var vendor = act.vendorId ? byId('owners', act.vendorId) : null;
     [['Completed by', owner ? owner.name + ' — ' + owner.role : '—'],
      ['Completed on', fmtDate(comp.completedOn)],
      ['Action', act.title],
-     ['Asset', (byId('assets', issue.assetId) || {}).name || '—']].forEach(function (p) {
+     ['Asset', (byId('assets', issue.assetId) || {}).name || '—']]
+      .concat(vendor ? [['Carried out by', vendor.name]] : [])
+      .forEach(function (p) {
       dl.appendChild(el('dt', null, p[0]));
       dl.appendChild(el('dd', null, p[1]));
     });
@@ -2366,7 +2426,10 @@
     ev.preventDefault();
     var name  = $('#f-name').value.trim();
     var email = $('#f-email').value.trim();
-    var uid   = $('#f-uid').value;
+    /* Trimmed like the other two. A pasted ID often carries a trailing space
+       from the email it came out of, and that is not a different value.
+       Case is left alone — access.caseSensitive governs it. */
+    var uid   = $('#f-uid').value.trim();
 
     /* Decision D2: Unique ID is the only field checked against a value.
        Name and email are still required to be present, because S5A UC-P01
@@ -2416,6 +2479,12 @@
   function exitApp() {
     State.drop(KEY_SESSION);
     State.session = null;
+    /* Draft answers belong to the person who typed them. Leaving them behind
+       means the next reviewer on this device opens a pre-filled form and
+       sends someone else's words under their own name. Reset demo
+       deliberately does not do this — only signing out does. */
+    State.drop(KEY_FORMS);
+    FormState = {};
     $('#view-app').hidden = true;
     $('#view-entry').hidden = false;
     $('#f-uid').value = '';
@@ -2638,6 +2707,20 @@
     $('#btn-reset').addEventListener('click', resetDemo);
     $('#btn-feedback').addEventListener('click', openFeedback);
     $('#btn-viewer').addEventListener('click', exitApp);
+    $('#btn-more').addEventListener('click', function () { openDialog('dlg-more'); });
+
+    /* The phone equivalent of the rail foot. Close first, so the sheet is
+       never left sitting over whatever it opened. */
+    $$('[data-more]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var what = b.dataset.more;
+        $('#dlg-more').close();
+        if (what === 'feedback') openFeedback();
+        else if (what === 'questionnaire') go('questionnaire');
+        else if (what === 'reset') resetDemo();
+        else if (what === 'exit') exitApp();
+      });
+    });
 
     document.addEventListener('click', function (e) {
       var t = e.target;

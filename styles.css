@@ -264,6 +264,9 @@ a { color: var(--blue-500); }
   opacity: 1; transform: translateY(-50%) translateX(0);
 }
 
+/* Desktop shows the rail foot itself, so the overflow button is mobile-only. */
+.rail-more { display: none; }
+
 .rail-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .rail-viewer {
   width: 34px; height: 34px; border-radius: var(--r-pill);
@@ -446,13 +449,23 @@ a { color: var(--blue-500); }
 }
 @media (max-width: 640px) {
   .app { grid-template-columns: 1fr; }
+  /* The bar is pinned to the visual viewport. It must clear the home
+     indicator on phones that have one, or the last row of buttons sits
+     underneath it and looks cut off. */
   .rail { position: fixed; bottom: 0; left: 0; right: 0; top: auto;
           height: auto; padding: 0; z-index: 50; }
-  .rail-inner { flex-direction: row; justify-content: space-around;
-                border-radius: var(--r-lg) var(--r-lg) 0 0; padding: 8px 10px; height: auto; }
+  .rail-inner {
+    flex-direction: row; justify-content: space-around; align-items: center;
+    border-radius: var(--r-lg) var(--r-lg) 0 0; height: auto;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 0;
+  }
   .rail-mark, .rail-foot { display: none; }
   .rail-btn .rail-label { display: none; }
-  .main { padding: 18px 16px 96px; }
+  /* Five equal slots. Buttons shrink rather than overflow on a 320px phone. */
+  .rail-more { display: grid; }
+  .rail-inner .rail-btn { flex: 1 1 0; min-width: 0; width: auto; max-width: 62px; }
+  .main { padding: 18px 16px calc(104px + env(safe-area-inset-bottom, 0px)); }
   .health { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -1373,6 +1386,21 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 .form-done .done-actions {
   display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
 }
+
+/* The mobile "More" sheet. Labelled rows, because the bottom bar has no
+   room for the hover tooltips the desktop rail relies on. */
+dialog.sheet-dialog { width: min(440px, calc(100vw - 24px)); }
+.sheet-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; }
+.sheet-item {
+  display: flex; align-items: center; gap: 13px; width: 100%;
+  padding: 13px 14px; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); color: var(--text); text-align: left; cursor: pointer;
+}
+.sheet-item:hover { background: var(--surface-2); }
+.sheet-item .ico { width: 20px; height: 20px; color: var(--blue-600); flex: none; }
+.sheet-item span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sheet-item b { font-size: 14.5px; font-weight: 600; }
+.sheet-item i { font-style: normal; font-size: 12.5px; color: var(--muted); }
 
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }
