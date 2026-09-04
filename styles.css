@@ -484,6 +484,15 @@ a { color: var(--blue-500); }
   }
   .rail-mark, .rail-foot { display: none; }
   .rail-btn .rail-label { display: none; }
+  /* The nav occupies the top 60px, so everything else that pins to top:0 has
+     to start below it or it sits underneath and swallows the taps aimed at
+     it. --navh is the single place that height is written down. */
+  :root { --navh: 60px; }
+  .iw-anchors { top: calc(var(--navh) + env(safe-area-inset-top, 0px)); }
+  .form-progress { top: calc(var(--navh) + env(safe-area-inset-top, 0px)); }
+  /* A section must clear the nav *and* the anchor strip beneath it. */
+  .iw-section { scroll-margin-top: calc(var(--navh) + 58px + env(safe-area-inset-top, 0px)); }
+
   /* Five equal slots. Buttons shrink rather than overflow on a 320px phone. */
   .rail-more { display: grid; }
   .rail-inner .rail-btn { flex: 1 1 0; min-width: 0; width: auto; max-width: 62px; }
@@ -673,7 +682,15 @@ a { color: var(--blue-500); }
 .rc-swatch.defer { border-top-style: dashed; border-top-color: var(--poor-500); }
 
 /* Evidence — tabs, photo strip, quality, sources */
-.tabs { display: flex; gap: 2px; padding: 12px 22px 0; border-bottom: 1px solid var(--border); }
+/* Wider than the card on a phone. Without its own scroller the card's
+   overflow:hidden clipped the last tab with no way to reach it. */
+.tabs {
+  display: flex; gap: 2px; padding: 12px 22px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; }
 .tab {
   background: none; border: 0; padding: 9px 15px 11px;
   font-size: 13px; font-weight: 550; color: var(--muted);
@@ -779,7 +796,7 @@ a { color: var(--blue-500); }
 dialog {
   border: 0; padding: 0; border-radius: var(--r-lg);
   box-shadow: var(--sh-3); background: var(--surface); color: var(--text);
-  width: min(460px, calc(100vw - 32px)); max-height: 86vh;
+  width: min(460px, calc(100vw - 32px)); max-height: 86dvh;
 }
 dialog::backdrop { background: rgba(11,22,40,.46); }
 dialog.wide { width: min(760px, calc(100vw - 32px)); }
@@ -889,11 +906,13 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 /* Evidence roll-up inside the brief */
 .r01-ev { display: grid; gap: 8px; }
 .r01-evrow {
-  display: grid; grid-template-columns: minmax(0,1fr) auto auto;
+  display: grid; min-width: 0; grid-template-columns: minmax(0,1fr) auto auto;
   gap: 12px; align-items: center;
   padding: 9px 13px; background: var(--surface-2); border-radius: var(--r-md);
 }
-.r01-evname { font-size: 13px; color: var(--text-2); }
+/* overflow-wrap: break-word does not reduce a box's min-content width, so
+   the grid track was still sized to the whole filename. anywhere does. */
+.r01-evname { font-size: 13px; color: var(--text-2); overflow-wrap: anywhere; min-width: 0; }
 
 /* Panel 08 compact card */
 .r01-card { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
@@ -1391,7 +1410,14 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 .matrix th:first-child { text-align: left; }
 .matrix td { padding: 7px 6px; border-top: 1px solid var(--border); text-align: center; }
 .matrix td:first-child { text-align: left; color: var(--text-2); line-height: 1.4; padding-right: 14px; }
-.matrix input { accent-color: var(--blue-700); width: 17px; height: 17px; }
+.matrix td { padding: 0; }
+/* The label fills the cell so the tap target is the cell, not the 17px dot. */
+.matrix-hit {
+  display: grid; place-items: center; min-height: 44px;
+  padding: 7px 6px; cursor: pointer; border-radius: var(--r-sm);
+}
+.matrix-hit:hover { background: var(--blue-050); }
+.matrix input { accent-color: var(--blue-700); width: 20px; height: 20px; }
 .matrix tr.is-answered td:first-child { color: var(--text); font-weight: 500; }
 
 /* Footer */
@@ -1467,18 +1493,32 @@ dialog.sheet-dialog { width: min(440px, calc(100vw - 24px)); }
   }
 }
 
+/* Tap targets. Everything a thumb has to hit clears 44px on a phone. */
+@media (max-width: 860px) {
+  .dlg-close { width: 44px; height: 44px; }
+  .cand-actions .btn, .cand-actions button { min-height: 44px; }
+  .iw-anchor { min-height: 44px; }
+  .link-more, .crumb button { min-height: 40px; display: inline-flex; align-items: center; }
+}
+
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }
 .rail-foot .rail-btn.is-form:hover { color: #fff; }
 
 @media (max-width: 640px) {
-  .matrix table { font-size: 12.5px; }
-  .matrix td:first-child { min-width: 150px; }
+  /* Tight enough that all the rating columns fit a 320px screen. They used
+     to run off the edge inside a scroller with no affordance, so people
+     answered from the two options they could see. */
+  .matrix table { font-size: 12px; }
+  .matrix th { font-size: 10px; letter-spacing: .02em; padding: 0 2px 8px; white-space: normal; }
+  .matrix td:first-child { min-width: 0; width: 38%; padding-right: 6px; font-size: 12px; }
+  .matrix-hit { padding: 6px 2px; min-height: 42px; }
+  .matrix input { width: 18px; height: 18px; }
 }
 
 /* Feedback as a modal: short form, keeps the user's place. The questionnaire
    stays a full page because it is long and needs a shareable URL. */
-dialog.form-dialog { width: min(620px, calc(100vw - 32px)); max-height: 88vh; }
+dialog.form-dialog { width: min(620px, calc(100vw - 32px)); max-height: 88dvh; }
 dialog.form-dialog .dlg-body { padding: 0 20px 4px; }
 dialog.form-dialog .form-wrap { max-width: none; }
 dialog.form-dialog .form-intro {

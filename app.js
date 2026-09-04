@@ -2381,7 +2381,12 @@
             box.classList.toggle('is-answered', isAnswered(q, next));
             onChange();
           });
-          td.appendChild(input);
+          /* Wrapped so the whole cell is the tap target. A bare 17px radio is
+             an unfair thing to ask of a thumb, and the non-matrix options in
+             this same form are already wrapped this way. */
+          var cell = el('label', 'matrix-hit');
+          cell.appendChild(input);
+          td.appendChild(cell);
           tr.appendChild(td);
         });
         tbody.appendChild(tr);
