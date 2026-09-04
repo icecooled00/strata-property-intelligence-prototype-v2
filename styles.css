@@ -1370,6 +1370,9 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 .form-done .tick .ico { width: 30px; height: 30px; }
 .form-done h2 { font-size: 21px; font-weight: 650; margin-bottom: 8px; }
 .form-done p { font-size: 14.5px; color: var(--muted); max-width: 46ch; margin: 0 auto 20px; }
+.form-done .done-actions {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+}
 
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }

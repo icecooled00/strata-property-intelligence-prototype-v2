@@ -1981,14 +1981,20 @@
   function formState(id) {
     if (!FormState[id]) {
       var saved = State.read(KEY_FORMS, {})[id];
-      FormState[id] = saved || { answers: {}, submitted: false };
+      /* `submitted` is never restored. A form can be sent as many times as
+         someone wants, so reopening one always starts a fresh response. */
+      FormState[id] = { answers: (saved && saved.answers) || {}, submitted: false };
     }
     return FormState[id];
   }
   function saveForms() {
     var all = {};
-    Object.keys(FormState).forEach(function (k) { all[k] = FormState[k]; });
+    Object.keys(FormState).forEach(function (k) { all[k] = { answers: FormState[k].answers }; });
     State.write(KEY_FORMS, all);
+  }
+  function resetForm(id) {
+    FormState[id] = { answers: {}, submitted: false };
+    saveForms();
   }
 
   function isAnswered(q, v) {
@@ -2160,11 +2166,18 @@
       done.appendChild(tick);
       done.appendChild(el('h2', null, 'Thank you'));
       done.appendChild(el('p', null, def.thanks));
+      var acts = el('div', 'done-actions');
       var back = el('button', 'btn btn-solid',
         opts.modal ? 'Close' : 'Back to the prototype');
       back.type = 'button';
       back.dataset.act = opts.modal ? 'close-feedback' : 'back-from-form';
-      done.appendChild(back);
+      acts.appendChild(back);
+      var again = el('button', 'btn btn-quiet', 'Send another response');
+      again.type = 'button';
+      again.dataset.act = 'form-again';
+      again.dataset.form = defId;
+      acts.appendChild(again);
+      done.appendChild(acts);
       host.appendChild(done);
       return;
     }
@@ -2287,7 +2300,10 @@
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function () {
+      /* Answers are cleared once they are safely stored, so the next
+         response starts blank instead of echoing the last one. */
       st.submitted = true;
+      st.answers = {};
       saveForms();
       track('form_submitted', { form: defId, complete: payload.complete });
       renderForm(defId, defId === 'feedback' ? $('#feedback-body') : $('#questionnaire-body'),
@@ -2305,6 +2321,9 @@
 
   function openFeedback() {
     loadForms().then(function () {
+      /* Coming back after sending starts a new response rather than
+         showing the thank-you screen again. */
+      if (formState('feedback').submitted) resetForm('feedback');
       renderForm('feedback', $('#feedback-body'), { modal: true });
       openDialog('dlg-feedback');
       track('form_opened', { form: 'feedback' });
@@ -2322,6 +2341,7 @@
       cr.appendChild(el('span', 'here', 'Questionnaire'));
     }
     loadForms().then(function () {
+      if (formState('questionnaire').submitted) resetForm('questionnaire');
       renderForm('questionnaire', $('#questionnaire-body'), {});
       trackOnce('form_opened_questionnaire', null);
     });
@@ -2727,6 +2747,13 @@
         else if (act.dataset.act === 'pick-file') $('#file-picker').click();
         else if (act.dataset.act === 'close-feedback') $('#dlg-feedback').close();
         else if (act.dataset.act === 'back-from-form') go('attention');
+        else if (act.dataset.act === 'form-again') {
+          var againId = act.dataset.form;
+          resetForm(againId);
+          renderForm(againId,
+            againId === 'feedback' ? $('#feedback-body') : $('#questionnaire-body'),
+            { modal: againId === 'feedback' });
+        }
         else if (act.dataset.act === 'demo-fail') startProcessing('DOC-001', null, true);
         else if (act.dataset.act === 'retry') startProcessing(Doc.docId, Doc.fileName, false);
         else if (act.dataset.act === 'choose-other') {
