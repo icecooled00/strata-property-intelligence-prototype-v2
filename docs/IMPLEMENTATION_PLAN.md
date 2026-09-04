@@ -358,7 +358,7 @@ inspection sequence, and the completion / closed-loop states.
     icons/                One inline SVG sprite (icons.svg).
   docs/
     IMPLEMENTATION_PLAN.md   This document.
-    DEMO_SCRIPT.md           2–5 minute guided walkthrough (Wave 7).
+    WALKTHROUGH_REFERENCE.md           2–5 minute guided walkthrough (Wave 7).
     design/                  9A2 + 9A1 contact sheets, committed for QA.
   README.md
   .gitignore
@@ -627,7 +627,7 @@ Viewer -> Attention -> Why -> Evidence -> Action -> Summary walkthrough end to e
 
 **Wave 7 — Hardening and release.** Responsive reconciliation, accessibility,
 edge states, Reset Demo verification, real assets swapped in, 9A2 visual QA,
-`DEMO_SCRIPT.md`, Cloudflare deployment and smoke check. *(P10-10, P10-11, P10-12)*
+`WALKTHROUGH_REFERENCE.md`, Cloudflare deployment and smoke check. *(P10-10, P10-11, P10-12)*
 
 ---
 

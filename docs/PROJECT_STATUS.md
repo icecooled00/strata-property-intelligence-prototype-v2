@@ -101,10 +101,10 @@ It currently sits on the document-select screen where a participant can see and 
 D7 deferred it entirely. The data object is retained and unrendered, so delivery is a rendering change with no migration. No date has been set.
 
 ### 3.7 Filing these documents into Drive
-Your governed folder uses S-numbered naming and a superseded-artifacts subfolder. `WAVE0_DECISIONS.md`, `PHOTO_PROMPTS.md`, `DEMO_SCRIPT.md` and this document currently live only in the repository. Tell me the naming convention and I will file them.
+Your governed folder uses S-numbered naming and a superseded-artifacts subfolder. `WAVE0_DECISIONS.md`, `PHOTO_PROMPTS.md`, `WALKTHROUGH_REFERENCE.md` and this document currently live only in the repository. Tell me the naming convention and I will file them.
 
 ### 3.8 Review the demo script
-`docs/DEMO_SCRIPT.md` puts words in your mouth — literally, it contains suggested phrasing. Worth reading before you use it in front of a prospect.
+`docs/WALKTHROUGH_REFERENCE.md` puts words in your mouth — literally, it contains suggested phrasing. Worth reading before you use it in front of a prospect.
 
 ### 3.9 v1 decommission
 v1 remains live at `strata-property-intelligence.icecooled.chatgpt.site` with the same Unique ID. You said both should be accessible. No action unless that changes.

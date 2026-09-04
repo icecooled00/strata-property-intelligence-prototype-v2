@@ -122,6 +122,6 @@ An HTML page prints to PDF and pastes into most slide tools reasonably well.
 
 ## Source
 
-Content is drawn from `DEMO_SCRIPT.md` and the frozen dataset in
+Content is drawn from `WALKTHROUGH_REFERENCE.md` and the frozen dataset in
 `WAVE0_DECISIONS.md`. If the demo script changes, update this prompt so the
 slide does not drift from what the prototype actually does.

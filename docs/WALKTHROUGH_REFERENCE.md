@@ -1,7 +1,22 @@
-# STRATA PROPERTY INTELLIGENCE — SELF-GUIDED WALKTHROUGH
+# WALKTHROUGH REFERENCE — INTERNAL
 
-Thanks for taking the time. This should take **about 10 minutes**, or 3 if you only do
-the main path.
+> **Do not send this to reviewers.**
+>
+> The prototype has to be understood without it. S6A §2 puts comprehension first, and a
+> guide contaminates that test — you would be measuring whether someone can follow
+> instructions, not whether the product explains itself.
+>
+> Kept for three things: onboarding anyone new to the project, a checklist when QA-ing a
+> change, and a record of what each screen is meant to communicate. If a reviewer gets
+> lost somewhere this document has to explain, that is a finding about the product, not
+> a reason to send them the document.
+
+---
+
+Below is written in reviewer voice, which is why it reads oddly for internal use. That
+is deliberate — it captures the intended experience, step by step.
+
+Full path takes about 10 minutes, or 3 for the main story.
 
 **Open:** <https://strata-property-prototype.pages.dev>
 **Unique ID:** `Vancouver` — capital V, exactly as written
