@@ -148,7 +148,7 @@
             <p class="prop-meta" id="a01-prop-meta"></p>
           </div>
           <button class="link-more" type="button" data-route="property">
-            View full history
+            Property details
             <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-chevron-right"></use></svg>
           </button>
         </div>
@@ -378,7 +378,7 @@
     <div class="dlg-body">
       <div class="dfield">
         <label for="df-until">Defer until</label>
-        <input id="df-until" type="date">
+        <input id="df-until" type="date" required>
       </div>
       <div class="dfield">
         <label for="df-reason">Reason</label>
@@ -423,6 +423,23 @@
     </button>
   </div>
   <div class="dlg-body" id="feedback-body" aria-live="polite"></div>
+</dialog>
+
+<!-- Reset and Exit both throw away work with one click. -->
+<dialog id="dlg-confirm" class="sheet-dialog" aria-labelledby="dlg-confirm-title">
+  <div class="dlg-head">
+    <h2 id="dlg-confirm-title">Are you sure?</h2>
+    <button class="dlg-close" type="button" data-close aria-label="Close">
+      <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-x"></use></svg>
+    </button>
+  </div>
+  <div class="dlg-body">
+    <p class="prose" id="dlg-confirm-body"></p>
+    <div class="confirm-actions">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn-solid" type="button" id="dlg-confirm-go">Continue</button>
+    </div>
+  </div>
 </dialog>
 
 <!-- Phone equivalent of the rail foot. Labelled rows rather than bare icons,

@@ -764,15 +764,29 @@
     var host = $('#iw03'); host.textContent = '';
     var act = State.action(issue.actionId);
     if (!act) {
-      host.appendChild(el('div', 'block')).appendChild(
-        el('p', 'prose', 'No recommended action has been generated for this issue yet.'));
+      /* Only the hero issue carries a worked recommendation in this
+         prototype. Saying so beats letting the reader conclude it broke. */
+      var empty = el('div', 'block');
+      empty.appendChild(el('p', 'sec-label', 'Recommended action'));
+      empty.appendChild(el('p', 'prose',
+        'No recommended action has been generated for this issue yet.'));
+      empty.appendChild(el('p', 'prose',
+        'This prototype works one issue through to a decision end to end. ' +
+        'The evidence and context above are real for every issue; the ' +
+        'recommendation, assignment and closure steps are built out on the ' +
+        'building envelope issue.'));
+      var goHero = el('button', 'btn btn-quiet', 'Open the worked example');
+      goHero.type = 'button'; goHero.dataset.act = 'open-hero';
+      empty.appendChild(goHero);
+      host.appendChild(empty);
       return;
     }
     var owner = byId('owners', act.ownerId);
     var bench = DATA.costBenchmark && DATA.costBenchmark.issueId === issue.id ? DATA.costBenchmark : null;
 
     var b1 = el('div', 'block');
-    b1.appendChild(el('p', 'sec-label', 'Recommended action'));
+    /* The section eyebrow is in the markup already; repeating it here printed
+       'Recommended action' twice, 25px apart. */
     var h = el('h2', null, act.title);
     h.style.fontSize = '19px';
     h.style.marginBottom = '10px';
@@ -838,13 +852,18 @@
     var pa = el('div', 'primary-actions');
     var assign = el('button', 'btn btn-solid', act.status === 'Recommended' ? 'Assign' : 'Reassign');
     assign.type = 'button'; assign.dataset.act = 'assign';
+    /* UC-P05 names three decisions. Confirm accepts the recommendation as it
+       stands, without yet naming an owner — which Assign forces you to do. */
+    var confirm = el('button', 'btn', act.status === 'Confirmed' ? 'Confirmed' : 'Confirm');
+    confirm.type = 'button'; confirm.dataset.act = 'confirm-action';
+    confirm.disabled = act.status !== 'Recommended';
     var defer = el('button', 'btn', 'Defer');
     defer.type = 'button'; defer.dataset.act = 'defer';
     var summary = el('button', 'btn btn-quiet', 'Open decision summary');
     summary.type = 'button'; summary.dataset.act = 'summary';
     var closeLoop = el('button', 'btn btn-quiet', 'Work status and completion');
     closeLoop.type = 'button'; closeLoop.dataset.act = 'completion';
-    pa.appendChild(assign); pa.appendChild(defer); pa.appendChild(summary);
+    pa.appendChild(assign); pa.appendChild(confirm); pa.appendChild(defer); pa.appendChild(summary);
     pa.appendChild(closeLoop);
     b5.appendChild(pa);
 
@@ -1151,7 +1170,9 @@
     card.appendChild(kv);
 
     var ft = el('div', 'ft');
-    var hist = el('button', 'link-more', 'View full history');
+    /* Named the history but opened the action section. The issue timeline is
+       the closest thing to a history the build has, so send it there. */
+    var hist = el('button', 'link-more', 'Back to the full issue');
     hist.type = 'button'; hist.dataset.act = 'back-to-issue';
     hist.appendChild(icon('chevron-right'));
     ft.appendChild(hist);
@@ -1307,7 +1328,7 @@
       mid.appendChild(el('b', null, d.name));
       mid.appendChild(el('span', null, d.type + ' · ' + fmtDate(d.date)));
       s.appendChild(mid);
-      s.appendChild(el('em', null, d.pages + ' pages'));
+      s.appendChild(el('em', null, d.pages + (d.pages === 1 ? ' page' : ' pages')));
       list.appendChild(s);
     });
     b2.appendChild(list);
@@ -1344,8 +1365,9 @@
 
     var card = el('div', 'card');
     var b = el('div', 'block');
-    b.appendChild(el('p', 'proc-head', 'Processing document…'));
-    b.appendChild(el('p', 'proc-sub', 'Extracting intelligence from ' + name));
+    /* #doc-title already reads 'Processing document'. */
+    b.appendChild(el('p', 'proc-head', 'Extracting intelligence'));
+    b.appendChild(el('p', 'proc-sub', name));
 
     var row = el('div', 'proc-barrow');
     var bar = el('div', 'proc-bar');
@@ -1387,7 +1409,7 @@
     var b = el('div', 'block');
     var h = el('div', 'fail-head');
     h.appendChild(icon('alert'));
-    h.appendChild(document.createTextNode('Processing Failed'));
+    h.appendChild(document.createTextNode('We could not read this document'));
     b.appendChild(h);
 
     var body = el('div', 'fail-body');
@@ -1501,6 +1523,7 @@
       if (c.sourcePage && c.documentId) {
         var sb = el('button', 'cand-src', 'Source: page ' + c.sourcePage);
         sb.type = 'button'; sb.dataset.doc = c.documentId;
+        sb.dataset.page = c.sourcePage;
         mrow.appendChild(sb);
       }
       left.appendChild(mrow);
@@ -1625,6 +1648,15 @@
     cr.appendChild(el('span', 'here', INSP_STEPS[Math.min(Insp.step, 4)]));
 
     host.appendChild(stepper(Math.min(Insp.step, 4)));
+
+    /* Every step except the first gets a way back. Without one the only
+       retreat was the browser button, which abandoned the flow. */
+    if (Insp.step > 0 && Insp.step < 4) {
+      var prev = el('button', 'btn btn-quiet', 'Back a step');
+      prev.type = 'button'; prev.dataset.act = 'insp-back';
+      prev.style.marginBottom = '14px';
+      host.appendChild(prev);
+    }
 
     if (Insp.step === 0) return renderI00(host);
     if (Insp.step === 1) return renderI01(host);
@@ -1829,7 +1861,9 @@
 
   var Done = { view: 'completion' };   // completion | closed
 
-  var ACTION_FLOW = ['Recommended', 'Assigned', 'In Progress', 'Completed'];
+  /* 'Confirmed' sits between recommending and assigning: the decision is
+     accepted, nobody is named yet. */
+  var ACTION_FLOW = ['Recommended', 'Confirmed', 'Assigned', 'In Progress', 'Completed'];
 
   function renderCompletion() {
     var host = $('#done-body');
@@ -1923,8 +1957,18 @@
       b.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo'));
       thumbs.appendChild(b);
     }
+    /* This used to be an inert div that read as a button. The other items
+       are the issue's own evidence, so send the reader there rather than
+       leaving a dead tile. */
     var extra = (comp.evidenceCount || 1) - (photo ? 1 : 0);
-    if (extra > 0) thumbs.appendChild(el('div', 'ev-more', '+' + extra));
+    if (extra > 0) {
+      var more = el('button', 'ev-more', '+' + extra);
+      more.type = 'button';
+      more.dataset.act = 'back-to-evidence';
+      more.title = 'See all evidence for this issue';
+      more.setAttribute('aria-label', 'See the other ' + extra + ' evidence items');
+      thumbs.appendChild(more);
+    }
     body.appendChild(thumbs);
     card.appendChild(body);
 
@@ -2069,10 +2113,15 @@
   }
 
   function formProgress(def, st) {
-    var required = def.questions.filter(function (q) { return !q.optional; });
-    var done = required.filter(function (q) { return isAnswered(q, st.answers[q.id]); });
-    return { done: done.length, total: required.length,
-             pct: required.length ? Math.round(done.length / required.length * 100) : 100 };
+    /* Count every question the reader can see. Counting only the required ones
+       made a five-question form report "0 of 4", which reads as a bug.
+       Readiness to send still depends on the required ones alone. */
+    var all = def.questions;
+    var done = all.filter(function (q) { return isAnswered(q, st.answers[q.id]); });
+    var required = all.filter(function (q) { return !q.optional; });
+    var reqLeft = required.filter(function (q) { return !isAnswered(q, st.answers[q.id]); }).length;
+    return { done: done.length, total: all.length, requiredLeft: reqLeft,
+             pct: all.length ? Math.round(done.length / all.length * 100) : 100 };
   }
 
   function renderQuestion(def, q, index, st, onChange) {
@@ -2271,7 +2320,9 @@
       var p = formProgress(def, st);
       fill.style.width = p.pct + '%';
       pleft.textContent = p.done + ' of ' + p.total + ' answered';
-      pright.textContent = p.pct === 100 ? 'Ready to send' : (p.total - p.done) + ' to go';
+      pright.textContent = p.requiredLeft === 0
+        ? 'Ready to send'
+        : p.requiredLeft + ' still needed';
     }
 
     /* Progress only. Each question keeps its own visual state in sync, so
@@ -2496,6 +2547,22 @@
     $('#f-name').focus();
   }
 
+  /* Reset and Exit each discard something the reader cannot get back, and
+     both used to fire on a single click with no acknowledgement. */
+  function confirmThen(title, body, label, fn) {
+    $('#dlg-confirm-title').textContent = title;
+    $('#dlg-confirm-body').textContent = body;
+    var go = $('#dlg-confirm-go');
+    go.textContent = label;
+    var fresh = go.cloneNode(true);          // drop any previous handler
+    go.parentNode.replaceChild(fresh, go);
+    fresh.addEventListener('click', function () {
+      $('#dlg-confirm').close();
+      fn();
+    });
+    openDialog('dlg-confirm');
+  }
+
   function resetDemo() {
     /* Reset restores the canonical baseline but keeps the viewer signed in,
        so a facilitator resetting mid-demo is not thrown back to the gate.
@@ -2577,7 +2644,15 @@
     else if (page === 'completion') { window.scrollTo(0, 0); renderCompletion(); }
     else if (page === 'questionnaire') { window.scrollTo(0, 0); renderQuestionnaire(); }
     else if (page === 'issue') {
+      /* An unknown id used to render the hero issue while the address bar
+         kept showing the id that does not exist, so a shared link could
+         show something other than what it names. Correct the URL. */
       var id = parts[1] || heroIssueId();
+      if (!byId('issues', id)) {
+        id = heroIssueId();
+        location.replace('#/issue/' + id + '/' + (SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why'));
+        return;
+      }
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
       window.scrollTo(0, 0);
       renderIssue(id, section);
@@ -2646,7 +2721,7 @@
     openDialog('dlg-defer');
   }
 
-  function openSource(docId, evidenceState) {
+  function openSource(docId, evidenceState, page) {
     var doc = byId('documents', docId);
     if (!doc) return;
     $('#dlg-source-title').textContent = doc.name;
@@ -2660,7 +2735,9 @@
     body.appendChild(el('div', 'doc-page', doc.previewExcerpt));
 
     var foot = el('div', 'doc-foot');
-    foot.appendChild(el('span', null, 'Page 1 of ' + doc.pages));
+    /* Show the page the provenance link actually named, not always page 1. */
+    var shownPage = Math.min(Math.max(parseInt(page, 10) || 1, 1), doc.pages);
+    foot.appendChild(el('span', null, 'Page ' + shownPage + ' of ' + doc.pages));
     foot.appendChild(el('span', null, 'Simulated preview — no document is fetched'));
     body.appendChild(foot);
     openDialog('dlg-source');
@@ -2688,6 +2765,9 @@
     var host = btn.parentNode;
     host.textContent = '';
     var done = el('div', 'export-done');
+    /* Announced, not just drawn — a screen reader had no way to know the
+       export had happened. */
+    done.setAttribute('role', 'status');
     done.appendChild(icon('check-circle'));
     done.appendChild(document.createTextNode(
       'Decision summary prepared for board circulation.'));
@@ -2709,10 +2789,29 @@
           this.removeAttribute('aria-invalid');
         });
       });
-    $('#btn-reset').addEventListener('click', resetDemo);
+    $('#btn-reset').addEventListener('click', function () {
+      confirmThen('Reset the demonstration?',
+        'Every change you have made — assignments, deferrals, confirmed document ' +
+        'fields, the inspection — goes back to the starting state. Your answers to ' +
+        'the feedback forms are kept.',
+        'Reset it', resetDemo);
+    });
     $('#btn-feedback').addEventListener('click', openFeedback);
-    $('#btn-viewer').addEventListener('click', exitApp);
+    $('#btn-viewer').addEventListener('click', function () {
+      confirmThen('Sign out of the prototype?',
+        'You will return to the entry screen and need your Unique ID again. ' +
+        'Any half-written feedback is cleared, so it cannot reach the next person ' +
+        'using this device.',
+        'Sign out', exitApp);
+    });
     $('#btn-more').addEventListener('click', function () { openDialog('dlg-more'); });
+
+    /* The rail is icon-only and the labels appear on hover as styled
+       tooltips, but nothing gave a plain title for a mouse user who
+       waits. Mirror the aria-label rather than repeat it in the markup. */
+    $$('.rail-btn[aria-label]').forEach(function (b) {
+      if (!b.title) b.title = b.getAttribute('aria-label');
+    });
 
     /* The phone equivalent of the rail foot. Close first, so the sheet is
        never left sitting over whatever it opened. */
@@ -2722,8 +2821,8 @@
         $('#dlg-more').close();
         if (what === 'feedback') openFeedback();
         else if (what === 'questionnaire') go('questionnaire');
-        else if (what === 'reset') resetDemo();
-        else if (what === 'exit') exitApp();
+        else if (what === 'reset') $('#btn-reset').click();
+        else if (what === 'exit') $('#btn-viewer').click();
       });
     });
 
@@ -2762,7 +2861,7 @@
       if (src) {
         track('evidence_opened', { documentId: src.dataset.doc });
         var badge = src.querySelector('.estate');
-        openSource(src.dataset.doc, badge ? badge.textContent : null);
+        openSource(src.dataset.doc, badge ? badge.textContent : null, src.dataset.page);
         return;
       }
 
@@ -2832,6 +2931,13 @@
           patchAction(issue.actionId, { status: 'Assigned' });
           Done.view = 'completion'; renderCompletion();
         }
+        else if (act.dataset.act === 'open-hero') go('issue', heroIssueId(), 'action');
+        else if (act.dataset.act === 'confirm-action') {
+          track('action_chosen', { choice: 'confirm' });
+          patchAction(issue.actionId, { status: 'Confirmed', deferred: null });
+          renderIssue(issue.id, 'action');
+          toast('Recommendation confirmed. Assign it when you know who is doing it.');
+        }
         else if (act.dataset.act === 'pick-file') $('#file-picker').click();
         else if (act.dataset.act === 'close-feedback') $('#dlg-feedback').close();
         else if (act.dataset.act === 'back-from-form') go('attention');
@@ -2862,6 +2968,8 @@
         deferred: null
       });
       renderIssue(issue.id, 'action');
+      var who = byId('owners', $('#as-owner').value);
+      toast('Assigned to ' + (who ? who.name : 'the selected owner') + '.');
     });
 
     /* Defer — the issue stays open. Completion is never implied. */
@@ -2875,6 +2983,7 @@
         }
       });
       renderIssue(issue.id, 'action');
+      toast('Deferred. The issue stays open and keeps appearing in Attention.');
     });
 
     /* Arrow-key movement within the evidence tablist */

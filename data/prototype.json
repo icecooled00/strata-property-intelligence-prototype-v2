@@ -474,7 +474,7 @@
 
   "candidates": [
     { "id": "CND-001", "documentId": "DOC-001", "category": "obligation", "label": "Assessment obligation date", "value": "Sep 27, 2026", "confidence": 91, "sourcePage": 2,  "sourceSnippet": "reassess within 24 months of report date", "state": "Candidate" },
-    { "id": "CND-002", "documentId": "DOC-001", "category": "fact",       "label": "Estimated repair cost",     "value": "$112,000",    "confidence": 64, "sourcePage": 4,  "sourceSnippet": "order-of-magnitude allowance for remedial sealant and localised cladding works", "state": "Candidate", "editedValue": "$124,000" },
+    { "id": "CND-002", "documentId": "DOC-001", "category": "fact",       "label": "Estimated repair cost",     "value": "$112,000",    "confidence": 64, "sourcePage": 4,  "sourceSnippet": "order-of-magnitude allowance for remedial sealant and localised cladding works", "state": "Candidate" },
     { "id": "CND-003", "documentId": "DOC-001", "category": "fact",       "label": "Warranty expiry",           "value": "Dec 31, 2026", "confidence": 88, "sourcePage": 9,  "sourceSnippet": "cladding system warranty expires 31 December 2026", "state": "Candidate" },
     { "id": "CND-004", "documentId": "DOC-001", "category": "asset",      "label": "North elevation cladding",  "value": "Metal panel rainscreen", "confidence": 77, "sourcePage": 3, "sourceSnippet": "north elevation comprises a metal panel rainscreen assembly", "state": "Candidate" },
     { "id": "CND-005", "documentId": "DOC-001", "category": "gap",        "label": "No post-2023 verification", "value": "Evidence gap", "confidence": null, "sourcePage": 11, "sourceSnippet": "no further review has been commissioned since this report", "state": "Candidate" }

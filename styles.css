@@ -126,6 +126,7 @@ a { color: var(--blue-500); }
   border-radius: var(--r-xl);
   box-shadow: var(--sh-3);
   overflow: hidden;
+  overflow: hidden;
 }
 
 .entry-form-side {
@@ -216,7 +217,13 @@ a { color: var(--blue-500); }
 
 @media (max-width: 800px) {
   .entry-card { grid-template-columns: 1fr; }
-  .entry-photo { min-height: 190px; order: -1; }
+  /* Stacked above the form, the photo needs a shape of its own. A bare
+     min-height let the figure grow past the image and showed the card
+     through on three sides. */
+  .entry-photo { min-height: 0; aspect-ratio: 16 / 10; order: -1; }
+  .entry-photo img,
+  .entry-photo .img-placeholder { position: absolute; inset: 0; height: 100%; }
+  .entry-photo figcaption { padding: 18px 20px 14px; }
   .entry-form-side { padding: 30px 26px 26px; }
 }
 
@@ -716,6 +723,7 @@ a { color: var(--blue-500); }
 }
 .status-badge .ico { width: 13px; height: 13px; }
 .st-recommended { background: var(--blue-050);    color: var(--blue-700); }
+.st-confirmed   { background: var(--blue-050);    color: var(--blue-700); }
 .st-assigned    { background: var(--good-050);    color: var(--good-600); }
 .st-inprogress  { background: var(--fair-050);    color: #9A5B12; }
 .st-completed   { background: var(--good-050);    color: var(--good-600); }
@@ -1401,6 +1409,11 @@ dialog.sheet-dialog { width: min(440px, calc(100vw - 24px)); }
 .sheet-item span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .sheet-item b { font-size: 14.5px; font-weight: 600; }
 .sheet-item i { font-style: normal; font-size: 12.5px; color: var(--muted); }
+
+.confirm-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 6px 0 12px; flex-wrap: wrap;
+}
 
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }
