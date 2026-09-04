@@ -2019,30 +2019,48 @@
 
     if (q.type === 'radio' || q.type === 'checkbox') {
       var multi = q.type === 'checkbox';
-      var picked = multi ? (Array.isArray(v) ? v.slice() : []) : v;
-      var atMax = multi && q.max && picked.length >= q.max;
+      var rows = [];
+      var maxNote = null;
+
+      /* Update this card in place. A full re-render on every click would
+         throw away keyboard focus and flicker on a long form. */
+      function syncChoices() {
+        var cur = multi ? (Array.isArray(st.answers[q.id]) ? st.answers[q.id] : []) : st.answers[q.id];
+        var hitMax = multi && q.max && cur.length >= q.max;
+        rows.forEach(function (r) {
+          var on = multi ? cur.indexOf(r.value) !== -1 : cur === r.value;
+          r.input.checked = on;
+          r.input.disabled = hitMax && !on;
+          r.label.classList.toggle('is-picked', on);
+          r.label.classList.toggle('is-disabled', hitMax && !on);
+        });
+        if (maxNote) {
+          maxNote.textContent = cur.length + ' of ' + q.max + ' selected';
+          maxNote.classList.toggle('is-hit', !!hitMax);
+        }
+        box.classList.toggle('is-answered', isAnswered(q, st.answers[q.id]));
+      }
 
       (q.options || []).forEach(function (opt) {
-        var on = multi ? picked.indexOf(opt) !== -1 : picked === opt;
-        var disabled = atMax && !on;
-        var row = el('label', 'opt' + (on ? ' is-picked' : '') + (disabled ? ' is-disabled' : ''));
+        var row = el('label', 'opt');
         var input = el('input');
         input.type = multi ? 'checkbox' : 'radio';
         input.name = def.id + '-' + q.id;
-        input.checked = on;
-        input.disabled = disabled;
         input.addEventListener('change', function () {
           if (multi) {
-            var next = picked.filter(function (x) { return x !== opt; });
+            var cur = Array.isArray(st.answers[q.id]) ? st.answers[q.id] : [];
+            var next = cur.filter(function (x) { return x !== opt; });
             if (input.checked) next.push(opt);
             st.answers[q.id] = next;
           } else {
             st.answers[q.id] = opt;
           }
+          syncChoices();
           onChange();
         });
         row.appendChild(input);
         row.appendChild(el('span', null, opt));
+        rows.push({ input: input, label: row, value: opt });
         body.appendChild(row);
       });
 
@@ -2064,10 +2082,10 @@
       }
 
       if (multi && q.max) {
-        var note = el('div', 'max-note' + (atMax ? ' is-hit' : ''),
-          picked.length + ' of ' + q.max + ' selected');
-        body.appendChild(note);
+        maxNote = el('div', 'max-note');
+        body.appendChild(maxNote);
       }
+      syncChoices();
 
     } else if (q.type === 'matrix') {
       var picks = (v && typeof v === 'object') ? v : {};
@@ -2091,9 +2109,13 @@
           input.checked = picks[rowLabel] === s;
           input.setAttribute('aria-label', rowLabel + ': ' + s);
           input.addEventListener('change', function () {
-            var next = Object.assign({}, picks);
+            var cur = (st.answers[q.id] && typeof st.answers[q.id] === 'object')
+              ? st.answers[q.id] : {};
+            var next = Object.assign({}, cur);
             next[rowLabel] = s;
             st.answers[q.id] = next;
+            tr.classList.add('is-answered');
+            box.classList.toggle('is-answered', isAnswered(q, next));
             onChange();
           });
           td.appendChild(input);
@@ -2113,9 +2135,10 @@
       field.setAttribute('aria-label', q.label);
       field.addEventListener('input', function () {
         st.answers[q.id] = field.value;
+        box.classList.toggle('is-answered', isAnswered(q, field.value));
         saveForms();
+        onChange();
       });
-      field.addEventListener('blur', onChange);
       body.appendChild(field);
     }
 
@@ -2173,9 +2196,11 @@
       pright.textContent = p.pct === 100 ? 'Ready to send' : (p.total - p.done) + ' to go';
     }
 
+    /* Progress only. Each question keeps its own visual state in sync, so
+       nothing here rebuilds the DOM or steals focus. */
     var onChange = function () {
       saveForms();
-      renderForm(defId, host, opts);   // re-render keeps picked states honest
+      refresh();
     };
 
     var sections = def.sections || [];
