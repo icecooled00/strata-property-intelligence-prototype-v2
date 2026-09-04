@@ -815,7 +815,12 @@ design is discarded.
 **Please confirm.** If you instead want the elevator scenario as the hero, that
 contradicts S6A §8 and needs a controlled amendment.
 
-### 18.2 — Portfolio Overview page *(minor)*
+### 18.2 — Portfolio Overview page — ✅ RESOLVED
+
+> **Decision D7:** portfolio is deferred to a later delivery and omitted from Prototype v2
+> entirely — neither a strip nor a page. This resolves the S8A F07 / HANDOFF §4 tension more
+> firmly than either source. The `portfolio` object stays in the dataset, unrendered.
+> See [`WAVE0_DECISIONS.md`](WAVE0_DECISIONS.md) §1 D7 for the UC-P02 traceability note.
 
 S8A **F07 (accepted)**: "*do not add a separate Portfolio screen in the
 Prototype*." HANDOFF §4: "*A Portfolio Overview page is allowed … as a secondary

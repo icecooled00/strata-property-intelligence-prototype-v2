@@ -44,6 +44,54 @@ Supersedes the open questions in `IMPLEMENTATION_PLAN.md` §18.1, §18.3 and §1
 The landing screen telegraphs the evidence gap before any card is clicked; the viewer then
 finds the envelope condition is Unknown *because* the supporting evidence is stale.
 
+### D5 — Typography
+**Self-host the matching typeface as woff2 in `assets/fonts/`.**
+
+Served from our own origin, so the "no external request" QA check still passes. Roughly
+120 KB of binary in the repo, accepted for the fidelity gain.
+
+> **Open sub-item:** the exact face on the contact sheet has not been confirmed. It reads as
+> Inter or a close geometric UI sans, but I will identify it from the committed PNG before
+> choosing what to self-host, rather than guessing. OFL or similarly redistributable licence
+> is a hard requirement.
+
+### D6 — Cloudflare Pages project name
+**`strata-prototype`** → `https://strata-prototype.pages.dev`
+
+Checked 2026-09-03: the subdomain returns NXDOMAIN, so it is unclaimed. Claim it when
+Wave 1 lands an `index.html`; deploying a docs-only repo would serve a 404.
+
+Fallbacks if taken at signup time: `strata-property-intelligence`, then
+`strata-intelligence-demo`.
+
+### D7 — Portfolio context
+**Deferred to a later delivery. Omit from Prototype v2 entirely.**
+
+No portfolio strip, no portfolio page, no portfolio counts anywhere in the UI. The Attention
+screen leads directly with Harbour Heights, exactly as 9A2 panel 02 draws it.
+
+> **Traceability note.** S5A UC-P02 says the operator "can see light portfolio context
+> **where relevant**," and S6A §22 / S8A §17 permit it. The "where relevant" qualifier carries
+> this omission, and 9A2 panel 02 — the primary visual authority — draws no portfolio cue.
+> Recording it here so the record shows a deliberate founder decision rather than an
+> oversight during use-case traceability review.
+>
+> This also settles `IMPLEMENTATION_PLAN.md` §18.2 (S8A F07 vs the HANDOFF §4 allowance) more
+> firmly than either source: neither a strip nor a page.
+>
+> The `portfolio` object **stays in `prototype.json`** but is never rendered, so a later
+> delivery is a rendering change with no data migration.
+
+### D8 — Design tokens
+**Sample exact values from the committed PNG.**
+
+Edwin commits `Strata_9A2_CONTACT_SHEET_FINAL_WEB.png` to `docs/design/`. Pillow is installed
+locally as a throwaway dev utility — never committed, never part of the site, no effect on the
+zero-dependency rule — and used to pull exact hex for every token plus measured spacing, radii
+and bar heights. The sheet then lives with the code as the Wave 7 QA baseline.
+
+Until that lands, the approximations in §3 below stand.
+
 ### D4 — Photography
 **Match the sheet's modern warm look.** See `PHOTO_PROMPTS.md`.
 
