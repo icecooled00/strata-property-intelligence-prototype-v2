@@ -118,6 +118,21 @@
     try { return JSON.parse(localStorage.getItem(KEY_EVENTS) || '[]'); }
     catch (e) { return []; }
   };
+  /* Viewer access log. Same-origin POST to our own Cloudflare Pages Function,
+     which adds the client IP server-side and forwards to the Google Sheet.
+     Fire-and-forget: entry must never wait on it, and must never fail if the
+     endpoint is absent (local preview has no functions runtime). */
+  function logAccess(name, email) {
+    try {
+      fetch('/api/access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, email: email }),
+        keepalive: true
+      }).catch(function () { /* logging is never load-bearing */ });
+    } catch (e) { /* ignore */ }
+  }
+
   window.strataEventsClear = function () {
     try { localStorage.removeItem(KEY_EVENTS); } catch (e) {}
     seenEvents = {};
@@ -1998,6 +2013,7 @@
     State.session = { name: name, email: email, enteredAt: new Date().toISOString() };
     State.write(KEY_SESSION, State.session);
     track('entry', { name: name, email: email });
+    logAccess(name, email);
     enterApp();
     go('attention');
   }
