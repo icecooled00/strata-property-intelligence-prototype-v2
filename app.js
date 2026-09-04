@@ -914,7 +914,7 @@
 
   /* Keep the pills honest once the reader takes over and scrolls by hand.
      Without this the pill keeps naming wherever they arrived from. */
-  var spyPending = false;
+  var spyLast = 0;
   function updateAnchorSpy() {
     var anchors = $$('.iw-anchor');
     if (!anchors.length) return;
@@ -928,10 +928,15 @@
       a.setAttribute('aria-current', String(a.dataset.anchor === here));
     });
   }
+  /* Throttled on elapsed time, not on a pending flag. A flag cleared inside
+     requestAnimationFrame latches forever if a scroll happens while the tab is
+     hidden — rAF never runs there, so the flag never clears and the pills stop
+     updating for the rest of the session. */
   window.addEventListener('scroll', function () {
-    if (spyPending) return;
-    spyPending = true;
-    requestAnimationFrame(function () { spyPending = false; updateAnchorSpy(); });
+    var now = Date.now();
+    if (now - spyLast < 80) return;
+    spyLast = now;
+    updateAnchorSpy();
   }, { passive: true });
 
   function setAnchor(section) {
