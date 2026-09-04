@@ -1447,7 +1447,7 @@
 
   var Insp = { step: 0, assetId: null, observation: null, condition: null, nextStep: null };
 
-  var INSP_STEPS = ['Capture photo', 'Asset', 'Observation', 'Resulting attention'];
+  var INSP_STEPS = ['Details', 'Capture photo', 'Observation', 'Result', 'Resulting attention'];
 
   function inspDefaults() {
     var i = DATA.inspection || {};
@@ -1510,9 +1510,9 @@
     back.dataset.route = 'attention';
     cr.appendChild(back);
     cr.appendChild(icon('chevron-right'));
-    cr.appendChild(el('span', 'here', INSP_STEPS[Math.min(Insp.step, 3)]));
+    cr.appendChild(el('span', 'here', INSP_STEPS[Math.min(Insp.step, 4)]));
 
-    host.appendChild(stepper(Math.min(Insp.step, 3)));
+    host.appendChild(stepper(Math.min(Insp.step, 4)));
 
     if (Insp.step === 0) return renderI00(host);
     if (Insp.step === 1) return renderI01(host);
