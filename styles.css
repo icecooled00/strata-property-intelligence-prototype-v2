@@ -53,8 +53,9 @@
 /* ---------- 2. BASE --------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body { height: 100%; }
-
+/* Deliberately no height:100% on html/body. Setting it makes body a separate
+   scrolling box, so window.scrollTo/scrollY and scrollIntoView disagree about
+   which element is scrolling. The shell sizes itself with min-height:100dvh. */
 body {
   margin: 0;
   background: var(--page);
