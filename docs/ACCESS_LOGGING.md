@@ -30,15 +30,25 @@ viewer still enters the prototype normally. Logging is never allowed to block a 
 
 ---
 
-## Step 1 — Create the Sheet
+## Step 1 — The Sheet — DONE
 
-1. Create a new Google Sheet, name it something like **Strata Prototype Access Log**.
-2. Rename the first tab to **`Access Log`**.
-3. Put these headers in row 1, A through F:
+Created 2026-09-04 in the Property Intelligence folder.
 
-   | A | B | C | D | E | F |
-   |---|---|---|---|---|---|
-   | Timestamp | Name | Email | IP | Country | User agent |
+**Strata Prototype Access Log**
+<https://docs.google.com/spreadsheets/d/135pYPrAz_gnafxWnBZwbpyKyB_QOzUB9WE5a-tFs0_o/edit>
+File ID `135pYPrAz_gnafxWnBZwbpyKyB_QOzUB9WE5a-tFs0_o`
+
+Headers are already in row 1:
+
+| A | B | C | D | E | F |
+|---|---|---|---|---|---|
+| Timestamp | Name | Email | IP | Country | User agent |
+
+**Worth one glance:** the tab along the bottom should read **`Access Log`**. It was
+created under that name so the CSV conversion would carry it, but the Drive API does
+not expose tab names, so this was not verified. If it reads anything else, rename it —
+or leave it, because the Apps Script falls back to `insertSheet('Access Log')` and will
+create the right tab on first write, leaving these headers on the old one.
 
 ## Step 2 — Add the Apps Script
 
