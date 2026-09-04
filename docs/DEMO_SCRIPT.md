@@ -1,368 +1,289 @@
-# DEMO GUIDE — STRATA PROPERTY INTELLIGENCE PROTOTYPE V2
+# STRATA PROPERTY INTELLIGENCE — SELF-GUIDED WALKTHROUGH
 
-**URL** <https://strata-property-prototype.pages.dev>
-**Unique ID** `Vancouver` — case-sensitive
-**Audience** Property managers, and self-managed strata / council operators
+Thanks for taking the time. This should take **about 10 minutes**, or 3 if you only do
+the main path.
 
-Two sections. **Section 1** is how to run it. **Section 2** is what each area actually
-is, so you can answer questions without guessing.
+**Open:** <https://strata-property-prototype.pages.dev>
+**Unique ID:** `Vancouver` — capital V, exactly as written
 
----
+Use a laptop or desktop. It works on a phone, but it was designed for a desk.
 
-# SECTION 1 — RUNNING THE DEMO
+## Two things before you start
 
-## Before you start — 60 seconds
+**Everything here is invented.** Harbour Heights doesn't exist. Every figure, document
+and photograph is synthetic. We're testing whether the *thinking* is right, not showing
+you live data.
 
-1. Open the URL, click **Reset demo** in the left rail. Everything below assumes the
-   canonical baseline.
-2. Close other tabs. The whole story is one screen; tab clutter undercuts it.
-3. Decide your time budget up front:
+**You can't break it.** Click anything. If you end up somewhere odd, hit **Reset demo**
+in the left rail and you're back at the start.
 
-| You have | Run |
-|---|---|
-| 5 minutes | Core story only. Stop at Decision Summary. |
-| 15 minutes | Core story + one companion. Pick the one matching their pain. |
-| 30 minutes | Core story + all three + questions. |
-
-**Do not run all three companions in a 15-minute slot.** The core story is the pitch.
-Companions are proof it goes deeper. Rushing the core to fit companions in loses the deal.
-
-## The core story — 2 minutes
-
-This is the part that must land. Everything else is optional.
+Section 1 walks you through it. Section 2 explains what you looked at, if you want the
+background afterwards.
 
 ---
 
-### 1 · Entry — 15 sec
+# SECTION 1 — WALK THROUGH IT
 
-Type a name, an email, and `Vancouver`.
+## Step 1 · Get in — 15 seconds
 
-> "This is a research prototype running on synthetic data. Nothing here is a real
-> building, and I'll flag anything that's simulated as we go."
+Enter your name, your email, and `Vancouver` as the Unique ID.
 
-**Say that line.** Leading with what's fake buys you credibility for everything you
-claim is real.
-
-Don't dwell. Nobody is impressed by a login.
+There's no password and no account. We record who looked and when, so we can follow up
+with you — nothing more.
 
 ---
 
-### 2 · Attention — 30 sec
+## Step 2 · The morning screen — 1 minute
 
-You land on Harbour Heights.
+You're looking at **Harbour Heights**, a 134-unit building in Vancouver. This is what a
+property manager would see first thing.
 
-> "This is the first screen a property manager sees each morning. Not a dashboard —
-> a ranked list of what needs attention."
+**Look at the five circles across the top.** Overall, Compliance, Maintenance, Money,
+Evidence.
 
-Move your cursor across the five health indicators, then **stop on Evidence: 38**.
+Four of them are fine. **Evidence is 38, in red.**
 
-> "Four of these are healthy. The fifth is the whole product. It's telling you the
-> evidence behind this building is weak — before you've clicked anything."
+That's the product telling you something before you've clicked anything: *the
+information behind this building is weak.* Not that something is broken — that you
+can't currently prove whether it is.
 
-**Pause here.** Let them look. This is the first moment the product says something a
-spreadsheet wouldn't.
+**Below that** is the attention list, ranked by urgency, consequence and how good the
+supporting evidence is. Six items. The top one is dominant on purpose.
+
+> **Worth asking yourself:** is this the first thing you'd want to see on a Monday
+> morning? Or would you want something else?
 
 ---
 
-### 3 · The hero issue — 20 sec
+## Step 3 · Open the top issue — 1 minute
 
 Click **Building envelope condition is unknown**.
 
-> "Read the wording. Not 'envelope failing'. *Unknown*. The product won't claim to
-> know something it can't."
+Read the title again. It doesn't say the envelope is failing. It says **unknown** —
+because nobody has actually looked.
 
-Point at the four facts: North Elevation · Due in 24 days · Condition Unknown ·
-$85K–$140K.
+You'll see four facts along the row: the affected asset, 24 days until the obligation is
+due, condition Unknown, and $85K–$140K of potential exposure.
 
-**This is the line that separates you from every AI tool they've been pitched.** Say it
-slowly.
+**Scroll down to "History and timing".** Four points: an assessment in 2023, some
+sealant work in 2024, today — with the evidence now 1,176 days old — and the deadline
+24 days out.
 
----
+**Below that, "Act now vs defer risk".** Green line if you act, red dashed if you wait.
+They cross at today.
 
-### 4 · Why — 25 sec
-
-> "Moisture staining was reported three weeks ago. Nobody assessed it. The last real
-> assessment is from 2023."
-
-Point at the timeline: **2023 → 2024 → Now, 1,176 days → Due in 24 days.**
-
-Then the act-now-vs-defer graph.
-
-> "Act now, risk drops. Defer, it climbs. That's the decision in one picture."
-
-**Optional, only if they lean in:** click *What does this mean?* — the AI explanation is
-on demand, never a chatbot in your face.
+> **Worth asking yourself:** would that timeline change how urgently you'd treat this?
 
 ---
 
-### 5 · Evidence — 25 sec
+## Step 4 · Check whether you'd trust it — 1 minute
 
-Click the **Evidence** anchor.
+Click **Evidence** in the row of buttons near the top.
 
-> "This is where you decide whether to trust it."
+**This is the part we most want your reaction to.**
 
-Evidence quality reads **Poor · 38%**. Walk the four sources with your cursor:
+Evidence quality reads **Poor · 38%**. Underneath are the four sources:
 
-| Source | State |
+| Source | What it says |
 |---|---|
-| 2023 assessment | Needs Review — 1,176 days old |
+| 2023 condition assessment | Needs Review — 1,176 days old |
 | 2021 consultant email | Needs Review — 5+ years old |
-| Resident report | **Unknown** — never inspected |
+| Resident report of staining | **Unknown** — never inspected |
 | Condition verification | **Missing** |
 
-> "Look at the bottom two. It's showing you what it *doesn't* have. A missing record
-> appears as missing — it isn't quietly left out."
+Look at the bottom two. The system is showing you what it **doesn't** have. The missing
+verification isn't quietly left out — it's listed as missing.
 
-Click any source. The preview opens.
+**Click any source row.** You'll see the document, the relevant passage, and its age.
 
-> "Every claim traces back to a document in one click."
-
-**This is the trust moment.** If they're going to buy, it happens here — not on the
-attention screen.
+> **Worth asking yourself:** is this enough to trust a recommendation? What else would
+> you want to see first?
 
 ---
 
-### 6 · Action — 25 sec
+## Step 5 · The recommendation — 1 minute
 
-Click the **Action** anchor.
+Click **Action**.
 
-> "Commission an assessment. Four to seven thousand, high confidence — that's a routine
-> engagement. The eighty-five to a hundred and forty thousand repair figure is *low*
-> confidence, because nobody has looked yet."
+The recommendation is to commission an assessment. Note the two cost figures:
 
-> "Two numbers. Two confidence levels. Both visible. Most tools would give you one
-> number and hope you don't ask."
+- **$4K–$7K** to assess, **high confidence** — that's routine, well-priced work
+- **$85K–$140K** to repair, **low confidence** — because nobody has looked yet
 
-Click **Assign** → pick an owner → **Assign**. Status flips to Assigned.
+We deliberately show both, with their confidence levels. A single number would be
+tidier and less honest.
 
----
+**Try the buttons.** Click **Assign**, pick someone, confirm. Watch the owner and status
+change. Then try **Defer** — note that it records a reason and states plainly that the
+issue stays open. Deferring never looks like completing.
 
-### 7 · Decision Summary — 20 sec
-
-Click **Open decision summary**.
-
-> "Same data, arranged for a board. Decision required at the top, then urgency,
-> evidence, cost."
-
-Scroll to Supporting evidence.
-
-> "And the gaps come with it. Your board sees *Missing* and *Unknown* too. This is a
-> document you can defend in a meeting."
-
-**Stop. The thesis has landed.** Ask a question rather than continuing.
+> **Worth asking yourself:** is that the action you'd take? Is anything missing before
+> you could act on it?
 
 ---
 
-## The companions — pick by their pain
+## Step 6 · The board summary — 1 minute
 
-Only run what matches what they complained about.
+Click **Open decision summary** at the bottom of the Action section.
 
-### If they said "our records are a mess" → Document to intelligence · 2 min
+Same information, rearranged for a council or board: what decision is needed, then
+urgency, evidence and cost, then why, then the recommendation.
 
-Evidence → **Try a sample document** → pick the envelope assessment. Watch it process.
+**Scroll down to Supporting evidence.** The gaps come with it — the board sees *Missing*
+and *Unknown* too.
 
-> "Simulated — no document is actually read."
+> **Worth asking yourself:** would this survive a real board meeting? What would get
+> challenged?
 
-On the review screen:
-
-> "These are *candidates*, not facts. Each carries its confidence and the page it came
-> from."
-
-Do three things, in this order:
-1. **Confirm** the obligation date — 91%, clean.
-2. **Edit** the repair cost — extracted $112,000 at 64%. Change to $124,000, confirm.
-   It now reads *Edited–Confirmed* and shows what it was corrected from.
-3. **Reject** one. Point at the source and snippet still sitting there.
-
-> "Rejecting doesn't erase where it came from. You can always audit the decision."
-
-**Worth 20 extra seconds:** back on the select screen, **Run failure demo** → it fails →
-**Try Again** → recovers.
-
-> "Failure is recoverable and never pretends to be success."
-
-### If they said "my people are in the field" → Field inspection · 90 sec
-
-Attention → **Start inspection**. Five steps.
-
-> "Responsive web at phone width. Deliberately not an app — nothing to install, nothing
-> to push through an app store."
-
-At the observation step, the important line:
-
-> "The person on site records the condition. The system does not diagnose from a
-> photograph. No computer vision, no guessing."
-
-End on **New Attention Created**.
-
-### If they said "we can't prove what we did" → Closing the loop · 60 sec
-
-Action section → **Work status and completion** → **Record completion with evidence** →
-**See the closed loop**.
-
-> "Severity resolved. Condition now Verified. Evidence quality up from 38 to 88."
-
-Then scroll down — **this is the bit that matters**:
-
-> "Completion didn't erase the risk. The stale evidence, the resident report, the whole
-> decision trail is still attached. Twelve months from now you can still answer 'why did
-> we spend that money?'"
+**That's the main path.** If you only have 5 minutes, stop here and jump to
+[the questions](#what-wed-like-to-hear).
 
 ---
 
-## Closing — ask, then stop talking
+## Optional · Turning a document into information — 2 minutes
 
-Pick three or four. Do not run the whole list.
+Go to **Evidence** → **Try a sample document** → pick the envelope assessment.
 
-1. Did you understand what needed attention?
-2. Was the priority credible?
-3. What evidence would *you* want before trusting this?
-4. Was the cost and timing context useful, or noise?
-5. Would the board summary survive an actual board meeting?
-6. What terminology felt wrong?
-7. What's missing before you'd act on this?
-8. **Would you put your real property data into this?**
-9. **Would you go further — design partner, or MVP?**
+Watch it process, then look at what comes out. Each item is a **candidate**, not a fact
+— with its confidence and the page it came from.
 
-**Watch, don't just listen.** Where they click first. Where they hesitate. Whether they
-notice the uncertainty unprompted. Whether *candidate* versus *confirmed* lands without
-you explaining it.
+Try all four controls on different rows:
+
+- **Confirm** the assessment date. It's 91% confident. Clean.
+- **Edit** the repair cost. It extracted $112,000 at only 64% confidence. Change it to
+  something else and confirm — it records that you corrected it, and what from.
+- **Reject** one. Notice the source and quote stay visible. Rejecting doesn't erase
+  where it came from.
+- **Defer** one for later.
+
+**If you want to see it fail:** back on the first screen there's a *Run failure demo*
+button. It fails partway and offers to retry. Failure recovers rather than dead-ends.
+
+> **Worth asking yourself:** would this save you real time, or create review work?
 
 ---
 
-## When it goes wrong
+## Optional · Field inspection — 90 seconds
 
-| Problem | Fix |
+From the attention screen, click **Start inspection**.
+
+Five steps: details, photo, observation, result, and the attention item it creates.
+
+The middle steps are shown at phone width — that's deliberate. It's responsive web, not
+an app, so there's nothing to install.
+
+Note what the system does **not** do: it doesn't diagnose anything from the photograph.
+The person on site records the condition. No computer vision, no guessing.
+
+> **Worth asking yourself:** would your people actually use this on site?
+
+---
+
+## Optional · Closing the loop — 60 seconds
+
+From the Action section, click **Work status and completion**, then **Record completion
+with evidence**, then **See the closed loop**.
+
+You'll see the before and after: severity resolved, condition now Verified, evidence
+quality up from 38% to 88%.
+
+**Then scroll down.** The original risk, the stale evidence and the whole decision trail
+are still attached. Completion doesn't erase history — twelve months later you can still
+answer *"why did we spend that?"*
+
+---
+
+## If you get stuck
+
+| Situation | What to do |
 |---|---|
-| Odd state mid-demo | **Reset demo** in the rail. Restores baseline, keeps you signed in. |
-| Need a clean start | Avatar at the bottom of the rail → back to the gate. |
-| Two screens disagree | That's a real bug. Note it, don't improvise. |
-| They ask about a screen you didn't plan | Every area works. Click it. Nothing is a dead end. |
-
-## Never claim
-
-No authentication. No backend. No document processing. No computer vision. No PDF
-generation. No integrations. Every figure is synthetic.
-
-If asked whether it integrates with anything today — **it doesn't**. Saying so plainly
-buys more credibility than hedging, and these buyers have been lied to by vendors before.
+| Something looks odd | **Reset demo** in the left rail. Back to the start. |
+| Want to start completely over | The circle with your initials at the bottom of the rail. |
+| A screen looks broken | Tell us — that's a bug, and we want to know. |
 
 ---
 
-# SECTION 2 — WHAT EACH AREA IS
+## What we'd like to hear
 
-Brief background so you can answer questions without guessing.
+Answer whichever you have an opinion on. Blunt is more useful than polite.
 
-## The four areas in the rail
+1. Did you understand what needed attention, without anyone explaining it?
+2. Was the priority credible, or did it feel arbitrary?
+3. **What evidence would you want before you'd trust a recommendation like this?**
+4. Was the cost and timing context useful, or noise?
+5. Would the board summary survive a real meeting?
+6. What terminology felt wrong for how you actually talk about this?
+7. What's missing before you could act on it?
+8. **Would you put your real property data into something like this?**
 
-The whole product is four ideas, in order: **Attention → Why → Evidence → Action.**
-That sequence is the product thesis. Everything else supports it.
-
-### Attention
-
-**What it is:** the landing screen. A ranked list of what needs dealing with at this
-property, with five health indicators above it.
-
-**Why it exists:** property managers don't want a dashboard, they want a queue. Ranking
-is by urgency, consequence and evidence quality — deliberately simple and explainable,
-not an opaque AI score.
-
-**Point at:** Evidence scoring 38 while everything else is healthy.
-
-**They'll ask:** *"How is this ranked?"* — Four visible factors. No black box. That's a
-deliberate choice; buyers distrust scores they can't interrogate.
-
-### Property
-
-**What it is:** a supporting view — the building, and condition by area.
-
-**Why it exists:** orientation only. It is deliberately *not* the landing screen; the
-product is attention-first, not navigation-first.
-
-**They'll ask:** *"Where's my portfolio view?"* — Deferred on purpose. This release is
-about proving the property-level story. Portfolio is a later delivery.
-
-### Evidence
-
-**What it is:** every source behind a claim, with its state: Verified, Needs Review,
-Conflicting, Missing, Unknown.
-
-**Why it exists:** this is the trust layer, and the reason the product isn't just
-another task list. Five states, all visually distinct, and never collapsed into a
-single trust score.
-
-**Point at:** Missing and Unknown. Most tools show you what they have. This shows you
-what they don't.
-
-**They'll ask:** *"What if the evidence is wrong?"* — Then it says Conflicting and stays
-unresolved until a human reviews it. See the elevator item on the attention list for a
-live example.
-
-### Action
-
-**What it is:** the recommendation, owner, timing, cost, and Confirm / Assign / Defer.
-
-**Why it exists:** the loop closes here. Understand → Decide → Assign → Complete →
-Evidence.
-
-**The detail worth knowing:** two costs with different confidence. The assessment is
-$4K–$7K at high confidence because it's routine work. The repair is $85K–$140K at low
-confidence because nobody has looked yet. That honesty about uncertainty is the whole
-positioning.
-
-**They'll ask:** *"What if I defer?"* — Show them. Defer records a reason and states
-plainly that the issue remains open. It never implies completion.
-
-## The three companions
-
-### Document to intelligence
-
-**What it is:** a source document becomes reviewable, source-linked candidates you
-confirm, edit, reject or defer.
-
-**Why it exists:** answers "how does the data get in?" without claiming a production
-pipeline. Candidates are proposals until a human accepts them — they never appear
-authoritative on arrival.
-
-**The detail worth knowing:** rejecting keeps the provenance. The source and snippet
-stay visible. You can always audit why something was thrown out.
-
-### Field inspection
-
-**What it is:** photo → asset → observation → a new attention item. Runs at phone width.
-
-**Why it exists:** proves the field-to-office loop without pretending to be a mobile app.
-
-**Say clearly:** the person on site records the condition. Nothing is diagnosed from a
-photograph. Over-claiming here is how AI property tools lose technical buyers.
-
-### Closing the loop
-
-**What it is:** completion with evidence, then the changed attention state.
-
-**Why it exists:** completion that erases history is worthless for governance. This
-shows the before and after *and* what was preserved.
-
-**The detail worth knowing:** severity resolved, evidence 38% → 88%, and the original
-risk still attached. That's the difference between a task tool and a system of record.
-
-## The hero scenario, and why it's this one
-
-Harbour Heights, 134 units, Vancouver. Building envelope, north elevation. Condition
-**Unknown**. Assessment due in 24 days. Repair exposure $85K–$140K. Owner Jordan Lee.
-
-It was chosen because it's **moderate but credible** — not a crisis. A collapsing
-building demos badly; everyone agrees you'd act. An issue where the honest answer is
-*"we don't know yet, and that's the problem"* is exactly where this product earns its
-keep.
-
-The building looks immaculate in the photographs. The evidence says nobody has checked.
-**That gap is the pitch.**
+And the one that matters most: **what did you expect to be able to do that you couldn't?**
 
 ---
 
-## Source of truth
+# SECTION 2 — WHAT YOU JUST LOOKED AT
 
-Content here reflects the frozen dataset in `WAVE0_DECISIONS.md`. If the prototype
-changes, update this guide — a demo guide that drifts from the product is worse than
-none.
+Brief background, if useful.
+
+## The core idea
+
+The whole product is four steps in order: **what needs attention → why it matters →
+what evidence supports that → what to do about it.** Everything else supports that
+sequence.
+
+## The areas
+
+**Attention.** A ranked queue, not a dashboard. Ranking uses four visible factors —
+urgency, consequence, financial exposure and evidence quality. Deliberately explainable
+rather than an AI score you can't interrogate.
+
+**Property.** Orientation only — the building and condition by area. Intentionally not
+the landing screen; the product leads with what needs doing, not with navigation.
+
+**Evidence.** The reason this isn't just a task list. Every source carries a state —
+Verified, Needs Review, Conflicting, Missing or Unknown — and they stay visually
+distinct rather than collapsing into a single trust score. If two sources disagree, it
+says **Conflicting** and stays unresolved until a person reviews it. The elevator item
+on the attention list is a live example of that.
+
+**Action.** Where the loop closes: understand, decide, assign, complete, evidence. The
+two cost figures with different confidence levels are the clearest expression of the
+product's position — it tells you how much it actually knows.
+
+## The companions
+
+**Document to intelligence.** Answers "how does information get in?" Extracted items are
+proposals until a person accepts them. They never arrive looking authoritative.
+
+**Field inspection.** The field-to-office loop, at phone width, without pretending to be
+a mobile app.
+
+**Closing the loop.** Completion that preserves history. A record that erases what came
+before is useless for governance.
+
+## Why this particular scenario
+
+We chose an issue that's **serious but not a crisis**. A building visibly falling down
+demos well and proves nothing — everyone agrees you'd act.
+
+The interesting case is the one where the honest answer is *"we don't know yet, and
+that's the problem."* The building looks immaculate in the photographs. The evidence
+says nobody has checked in three years.
+
+**That gap is what we're trying to solve.** Whether we've solved it is what we'd like
+you to tell us.
+
+---
+
+## What's real and what isn't
+
+| Real | Simulated |
+|---|---|
+| Every screen and interaction | All data, documents and photographs |
+| The workflow and its states | Document processing and extraction |
+| Your changes persisting as you click | Any AI analysis |
+| The evidence and confidence model | Exports and PDF generation |
+
+There is no backend, no integrations and no live data. This is a prototype built to test
+an idea, not an early version of a product you can buy today.
+
+Thanks again — genuinely, the blunt feedback is the useful kind.
