@@ -653,6 +653,20 @@
     }
 
     /* Sources — every evidence record, including Missing and Unknown */
+    /* F05: the document companion is launched from Evidence. */
+    var bl = el('div', 'block');
+    var lz = el('div', 'launcher');
+    lz.appendChild(icon('evidence'));
+    var lt = el('div', 't');
+    lt.appendChild(el('b', null, 'Turn a document into intelligence'));
+    lt.appendChild(el('span', null, 'See how a source document becomes reviewable, source-linked intelligence.'));
+    lz.appendChild(lt);
+    var lb = el('button', 'btn', 'Try a sample document');
+    lb.type = 'button'; lb.dataset.route = 'documents';
+    lz.appendChild(lb);
+    bl.appendChild(lz);
+    host.appendChild(bl);
+
     var bs = el('div', 'block');
     bs.appendChild(el('h2', null, 'Source'));
     if (evidence.length) {
@@ -1029,6 +1043,387 @@
     host.appendChild(exp);
   }
 
+  /* ---------- RENDER: D01–D02 DOCUMENT COMPANION ---------- */
+
+  var Doc = {
+    phase: 'select',      // select | processing | failed | review
+    docId: null,
+    fileName: null,       // when a real file was chosen, its name only
+    progress: 0,
+    stepIndex: 0,
+    forceFail: false,
+    editing: null,        // candidate id being edited
+    timers: []
+  };
+
+  function clearDocTimers() {
+    Doc.timers.forEach(clearTimeout);
+    Doc.timers = [];
+  }
+
+  function toast(message) {
+    var old = $('.toast');
+    if (old) old.remove();
+    var t = el('div', 'toast');
+    t.setAttribute('role', 'status');
+    t.appendChild(icon('check-circle'));
+    t.appendChild(document.createTextNode(message));
+    document.body.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.remove(); }, 3600);
+  }
+
+  function candidate(id) {
+    var base = (DATA.candidates || []).filter(function (c) { return c.id === id; })[0];
+    if (!base) return null;
+    var patch = (State.overlay.candidates || {})[id] || {};
+    return Object.assign({}, base, patch);
+  }
+  function patchCandidate(id, patch) {
+    State.overlay.candidates = State.overlay.candidates || {};
+    State.overlay.candidates[id] = Object.assign({}, State.overlay.candidates[id] || {}, patch);
+    State.saveOverlay();
+  }
+
+  function startProcessing(docId, fileName, fail) {
+    clearDocTimers();
+    Doc.phase = 'processing';
+    Doc.docId = docId;
+    Doc.fileName = fileName || null;
+    Doc.progress = 0;
+    Doc.stepIndex = 0;
+    Doc.forceFail = !!fail;
+    renderDocuments();
+
+    var steps = (DATA.processing && DATA.processing.steps) || [];
+    var elapsed = 0;
+    /* Deterministic delays so the workflow is perceptible (S10A F08). */
+    steps.forEach(function (step, i) {
+      elapsed += step.ms;
+      Doc.timers.push(setTimeout(function () {
+        if (Doc.forceFail && i === 1) {
+          Doc.phase = 'failed';
+          clearDocTimers();
+          renderDocuments();
+          return;
+        }
+        Doc.stepIndex = i + 1;
+        Doc.progress = Math.round(((i + 1) / steps.length) * 100);
+        renderDocuments();
+        if (i === steps.length - 1) {
+          Doc.timers.push(setTimeout(function () {
+            Doc.phase = 'review';
+            renderDocuments();
+          }, 500));
+        }
+      }, elapsed));
+    });
+  }
+
+  function renderDocuments() {
+    var host = $('#doc-body');
+    if (!host) return;
+    host.textContent = '';
+
+    var cr = $('#doc-crumb'); cr.textContent = '';
+    var back = el('button', null, 'Back to evidence'); back.type = 'button';
+    back.dataset.act = 'back-to-evidence';
+    cr.appendChild(back);
+    cr.appendChild(icon('chevron-right'));
+    cr.appendChild(el('span', 'here',
+      Doc.phase === 'review' ? 'Review extracted intelligence' : 'Document'));
+
+    if (Doc.phase === 'select')     return renderD01(host);
+    if (Doc.phase === 'processing') return renderD01P(host);
+    if (Doc.phase === 'failed')     return renderD01F(host);
+    return renderD02(host);
+  }
+
+  /* D01 — select / upload */
+  function renderD01(host) {
+    $('#doc-title').textContent = 'Turn a document into intelligence';
+    $('#doc-sub').textContent =
+      'Select a sample document to see how source evidence becomes reviewable intelligence.';
+
+    var card = el('div', 'card');
+    var b = el('div', 'block');
+
+    var dz = el('button', 'dropzone');
+    dz.type = 'button';
+    dz.dataset.act = 'pick-file';
+    dz.appendChild(icon('evidence'));
+    dz.appendChild(el('b', null, 'Drop files here or click to upload'));
+    dz.appendChild(el('span', null, 'PDF, Excel, Word, Images (Max 50MB)'));
+    b.appendChild(dz);
+
+    var note = el('p', 'quality-why');
+    note.textContent = 'Nothing is uploaded. The file name is read in the browser and discarded.';
+    b.appendChild(note);
+
+    b.appendChild(el('h2', null, 'Or connect a source'));
+    var row = el('div', 'connect-row');
+    ['Email', 'Google Drive', 'Dropbox', 'SharePoint'].forEach(function (name) {
+      var cb = el('button', 'connect-btn'); cb.type = 'button';
+      cb.dataset.connect = name;
+      cb.appendChild(icon('evidence'));
+      cb.appendChild(document.createTextNode(name));
+      row.appendChild(cb);
+    });
+    b.appendChild(row);
+    card.appendChild(b);
+
+    var b2 = el('div', 'block');
+    b2.appendChild(el('h2', null, 'Or choose a sample document'));
+    var list = el('div', 'samplelist');
+    (DATA.documents || []).forEach(function (d) {
+      var s = el('button', 'sample'); s.type = 'button'; s.dataset.sample = d.id;
+      s.appendChild(icon('evidence'));
+      var mid = el('div');
+      mid.appendChild(el('b', null, d.name));
+      mid.appendChild(el('span', null, d.type + ' · ' + fmtDate(d.date)));
+      s.appendChild(mid);
+      s.appendChild(el('em', null, d.pages + ' pages'));
+      list.appendChild(s);
+    });
+    b2.appendChild(list);
+    card.appendChild(b2);
+
+    /* A facilitator needs to be able to show the recoverable-failure path
+       on demand (S8A §20), so it is an explicit control rather than chance. */
+    var b3 = el('div', 'block');
+    var fl = el('div', 'launcher');
+    fl.appendChild(icon('alert'));
+    var ft = el('div', 't');
+    ft.appendChild(el('b', null, 'Demonstrate a processing failure'));
+    ft.appendChild(el('span', null, 'Runs the same flow and fails partway, so the retry path can be shown.'));
+    fl.appendChild(ft);
+    var fb = el('button', 'btn', 'Run failure demo');
+    fb.type = 'button'; fb.dataset.act = 'demo-fail';
+    fl.appendChild(fb);
+    b3.appendChild(fl);
+    card.appendChild(b3);
+
+    host.appendChild(card);
+  }
+
+  /* D01-P — processing */
+  function renderD01P(host) {
+    var doc = byId('documents', Doc.docId);
+    var name = Doc.fileName || (doc ? doc.name : 'document');
+    var steps = (DATA.processing && DATA.processing.steps) || [];
+    var totalPages = doc ? doc.pages : (DATA.processing.totalPages || 12);
+    var pagesDone = Math.max(1, Math.round(totalPages * Doc.progress / 100));
+
+    $('#doc-title').textContent = 'Processing document…';
+    $('#doc-sub').textContent = 'Extracting intelligence from ' + name;
+
+    var card = el('div', 'card');
+    var b = el('div', 'block');
+    b.appendChild(el('p', 'proc-head', 'Processing document…'));
+    b.appendChild(el('p', 'proc-sub', 'Extracting intelligence from ' + name));
+
+    var row = el('div', 'proc-barrow');
+    var bar = el('div', 'proc-bar');
+    var fill = el('span', 'proc-fill');
+    fill.style.width = Doc.progress + '%';
+    bar.appendChild(fill);
+    row.appendChild(bar);
+    row.appendChild(el('span', 'proc-pct', Doc.progress + '%'));
+    b.appendChild(row);
+    b.appendChild(el('p', 'proc-pages', 'Pages processed: ' + pagesDone + ' of ' + totalPages));
+
+    var sl = el('div', 'proc-steps');
+    steps.forEach(function (s, i) {
+      var done = i < Doc.stepIndex;
+      var active = i === Doc.stepIndex;
+      var st = el('div', 'proc-step' + (done ? ' is-done' : active ? ' is-active' : ''));
+      if (done) st.appendChild(icon('check-circle'));
+      else st.appendChild(el('span', 'dotring'));
+      st.appendChild(el('span', null, s.label));
+      sl.appendChild(st);
+    });
+    b.appendChild(sl);
+
+    var sim = el('p', 'quality-why');
+    sim.textContent = 'Simulated. No document is read, uploaded or analysed.';
+    b.appendChild(sim);
+    card.appendChild(b);
+    host.appendChild(card);
+  }
+
+  /* D01-F — recoverable failure */
+  function renderD01F(host) {
+    var doc = byId('documents', Doc.docId);
+    var name = Doc.fileName || (doc ? doc.name : 'document');
+    $('#doc-title').textContent = 'Processing failed';
+    $('#doc-sub').textContent = name;
+
+    var card = el('div', 'card');
+    var b = el('div', 'block');
+    var h = el('div', 'fail-head');
+    h.appendChild(icon('alert'));
+    h.appendChild(document.createTextNode('Processing Failed'));
+    b.appendChild(h);
+
+    var body = el('div', 'fail-body');
+    body.appendChild(el('p', null, 'We couldn’t process this document.'));
+    body.appendChild(el('p', 'quality-why', 'Possible reasons:'));
+    var ul = el('ul', 'fail-reasons');
+    (DATA.processing.failureReasons || []).forEach(function (r) {
+      ul.appendChild(el('li', null, r));
+    });
+    body.appendChild(ul);
+
+    var acts = el('div', 'fail-actions');
+    var again = el('button', 'btn btn-solid', 'Try Again');
+    again.type = 'button'; again.dataset.act = 'retry';
+    var other = el('button', 'btn', 'Choose Another File');
+    other.type = 'button'; other.dataset.act = 'choose-other';
+    acts.appendChild(again); acts.appendChild(other);
+    body.appendChild(acts);
+    b.appendChild(body);
+    card.appendChild(b);
+    host.appendChild(card);
+  }
+
+  var CAND_STATE_META = {
+    'Confirmed':        { cls: 'confirmed', card: 'is-confirmed', icon: 'check-circle' },
+    'Edited–Confirmed': { cls: 'edited',    card: 'is-edited',    icon: 'check-circle' },
+    'Rejected':         { cls: 'rejected',  card: 'is-rejected',  icon: 'minus-circle' },
+    'Deferred Review':  { cls: 'deferred',  card: 'is-deferred',  icon: 'clock' }
+  };
+
+  /* D02 — candidate review, with D02-E inline edit */
+  function renderD02(host) {
+    var doc = byId('documents', Doc.docId);
+    $('#doc-title').textContent = 'Review extracted intelligence';
+    $('#doc-sub').textContent = (doc ? doc.name : 'Document') +
+      ' · candidates are proposals, not facts, until you confirm them';
+
+    var cands = (DATA.candidates || []).filter(function (c) {
+      return !Doc.docId || c.documentId === Doc.docId;
+    }).map(function (c) { return candidate(c.id); });
+
+    if (!cands.length) {
+      var empty = el('div', 'card');
+      var eb = el('div', 'block');
+      eb.appendChild(el('p', 'prose',
+        'No candidate intelligence was extracted from this document in the demonstration dataset. ' +
+        'Try the Building Envelope Condition Assessment.'));
+      empty.appendChild(eb);
+      host.appendChild(empty);
+      return;
+    }
+
+    var grid = el('div', 'cand-grid');
+    cands.forEach(function (c) {
+      var meta = CAND_STATE_META[c.state];
+      var card = el('div', 'cand' + (meta ? ' ' + meta.card : ''));
+
+      var left = el('div');
+      left.appendChild(el('div', 'cand-label', c.label));
+
+      if (Doc.editing === c.id) {
+        /* D02-E */
+        var pv = el('div', 'cand-value');
+        pv.appendChild(el('span', 'pre', 'Candidate: '));
+        pv.appendChild(document.createTextNode(c.value));
+        left.appendChild(pv);
+        var ed = el('div', 'cand-edit');
+        var inp = el('input');
+        inp.type = 'text';
+        inp.id = 'cand-input';
+        inp.value = c.editedValue || c.value;
+        inp.setAttribute('aria-label', 'Corrected value for ' + c.label);
+        ed.appendChild(inp);
+        var save = el('button', 'btn-sm solid', 'Confirm');
+        save.type = 'button'; save.dataset.candSave = c.id;
+        var cancel = el('button', 'btn-sm', 'Cancel');
+        cancel.type = 'button'; cancel.dataset.candCancel = c.id;
+        ed.appendChild(save); ed.appendChild(cancel);
+        left.appendChild(ed);
+      } else {
+        var v = el('div', 'cand-value');
+        var shown = (c.state === 'Edited–Confirmed' && c.editedValue) ? c.editedValue : c.value;
+        v.appendChild(el('span', 'pre',
+          c.state === 'Candidate' ? 'Candidate: ' : ''));
+        v.appendChild(document.createTextNode(shown));
+        left.appendChild(v);
+        if (c.state === 'Edited–Confirmed' && c.editedValue && c.editedValue !== c.value) {
+          left.appendChild(el('div', 'quality-why', 'Corrected from ' + c.value));
+        }
+      }
+
+      var mrow = el('div', 'cand-meta');
+      if (meta) {
+        var badge = el('span', 'cand-state cs-' + meta.cls);
+        badge.appendChild(icon(meta.icon));
+        badge.appendChild(document.createTextNode(c.state));
+        mrow.appendChild(badge);
+      }
+      if (c.confidence != null) {
+        var conf = el('span', 'cand-conf');
+        conf.appendChild(document.createTextNode(c.confidence + '%'));
+        var track = el('i');
+        var f = el('b');
+        f.style.width = c.confidence + '%';
+        f.style.background = c.confidence >= 85 ? 'var(--good-600)'
+                           : c.confidence >= 70 ? 'var(--fair-600)' : 'var(--poor-500)';
+        track.appendChild(f);
+        conf.appendChild(track);
+        mrow.appendChild(conf);
+      }
+      if (c.sourcePage && c.documentId) {
+        var sb = el('button', 'cand-src', 'Source: page ' + c.sourcePage);
+        sb.type = 'button'; sb.dataset.doc = c.documentId;
+        mrow.appendChild(sb);
+      }
+      left.appendChild(mrow);
+      if (c.sourceSnippet) left.appendChild(el('div', 'cand-snippet', '“' + c.sourceSnippet + '”'));
+      card.appendChild(left);
+
+      var acts = el('div', 'cand-actions');
+      if (Doc.editing !== c.id) {
+        if (c.state === 'Candidate') {
+          [['Confirm', 'confirm', true], ['Edit', 'edit', false],
+           ['Reject', 'reject', false], ['Defer', 'defer', false]].forEach(function (a) {
+            var btn = el('button', 'btn-sm' + (a[2] ? ' solid' : ''), a[0]);
+            btn.type = 'button';
+            btn.dataset.cand = c.id;
+            btn.dataset.candAct = a[1];
+            acts.appendChild(btn);
+          });
+        } else {
+          var undo = el('button', 'btn-sm', 'Undo');
+          undo.type = 'button'; undo.dataset.cand = c.id; undo.dataset.candAct = 'undo';
+          acts.appendChild(undo);
+        }
+      }
+      card.appendChild(acts);
+      grid.appendChild(card);
+    });
+    host.appendChild(grid);
+
+    var total = DATA.candidateTotalFindings || cands.length;
+    var bar = el('div', 'findings-bar');
+    bar.appendChild(document.createTextNode(
+      'Showing the ' + cands.length + ' most material of ' + total + ' findings'));
+    host.appendChild(bar);
+
+    /* How a confirmed candidate would feed the rest of the product (S8A §12) */
+    var out = el('div', 'launcher');
+    out.style.marginTop = '12px';
+    out.appendChild(icon('attention'));
+    var ot = el('div', 't');
+    ot.appendChild(el('b', null, 'Confirmed intelligence feeds Property, Evidence and Attention'));
+    ot.appendChild(el('span', null,
+      'Rejected and deferred items keep their provenance — the source is never erased.'));
+    out.appendChild(ot);
+    var ob = el('button', 'btn', 'Back to the issue');
+    ob.type = 'button'; ob.dataset.act = 'back-to-evidence';
+    out.appendChild(ob);
+    host.appendChild(out);
+  }
+
   /* ---------- ACTIONS ------------------------------------- */
 
   function setFieldError(fieldId, errorId, message) {
@@ -1107,13 +1502,16 @@
        so a facilitator resetting mid-demo is not thrown back to the gate.
        "Exit prototype" (the viewer button) clears the session. */
     State.resetDemo();
+    clearDocTimers();
+    Doc.phase = 'select'; Doc.docId = null; Doc.fileName = null;
+    Doc.progress = 0; Doc.stepIndex = 0; Doc.forceFail = false; Doc.editing = null;
     renderAll();
     go('attention');
   }
 
   /* ---------- ROUTER -------------------------------------- */
 
-  var PAGES = ['attention', 'property', 'issue', 'summary'];
+  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents'];
   var SECTIONS = ['why', 'evidence', 'action'];
 
   function heroIssueId() {
@@ -1131,6 +1529,8 @@
       target = '#/issue/' + (issueId || State.issueId || heroIssueId()) + '/' + (section || 'why');
     } else if (route === 'summary') {
       target = '#/summary/' + (issueId || State.issueId || heroIssueId());
+    } else if (route === 'documents') {
+      target = '#/documents';
     } else {
       target = '#/' + (PAGES.indexOf(route) !== -1 ? route : 'attention');
     }
@@ -1159,6 +1559,7 @@
 
     if (page === 'property') { renderP00(); window.scrollTo(0, 0); }
     else if (page === 'summary') { window.scrollTo(0, 0); renderR01(parts[1]); }
+    else if (page === 'documents') { window.scrollTo(0, 0); renderDocuments(); }
     else if (page === 'issue') {
       var id = parts[1] || heroIssueId();
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
@@ -1326,6 +1727,37 @@
         return;
       }
 
+      var conn = t.closest('[data-connect]');
+      if (conn) {
+        toast(conn.dataset.connect + ' is simulated in this prototype — no account is connected.');
+        return;
+      }
+
+      var samp = t.closest('[data-sample]');
+      if (samp) { startProcessing(samp.dataset.sample, null, false); return; }
+
+      var cs = t.closest('[data-cand-save]');
+      if (cs) {
+        var val = ($('#cand-input') || {}).value;
+        patchCandidate(cs.dataset.candSave,
+          { state: 'Edited–Confirmed', editedValue: (val || '').trim() || undefined });
+        Doc.editing = null; renderDocuments(); return;
+      }
+      var cc = t.closest('[data-cand-cancel]');
+      if (cc) { Doc.editing = null; renderDocuments(); return; }
+
+      var cand = t.closest('[data-cand]');
+      if (cand) {
+        var id = cand.dataset.cand, what = cand.dataset.candAct;
+        if (what === 'edit') { Doc.editing = id; renderDocuments();
+          var inp = $('#cand-input'); if (inp) { inp.focus(); inp.select(); } return; }
+        if (what === 'confirm') patchCandidate(id, { state: 'Confirmed' });
+        if (what === 'reject')  patchCandidate(id, { state: 'Rejected' });
+        if (what === 'defer')   patchCandidate(id, { state: 'Deferred Review' });
+        if (what === 'undo')    patchCandidate(id, { state: 'Candidate', editedValue: undefined });
+        renderDocuments(); return;
+      }
+
       var act = t.closest('[data-act]');
       if (act) {
         var issue = currentIssue();
@@ -1334,6 +1766,13 @@
         else if (act.dataset.act === 'summary') go('summary', issue.id);
         else if (act.dataset.act === 'back-to-issue') go('issue', issue.id, 'action');
         else if (act.dataset.act === 'export') simulateExport(act);
+        else if (act.dataset.act === 'back-to-evidence') go('issue', State.issueId, 'evidence');
+        else if (act.dataset.act === 'pick-file') $('#file-picker').click();
+        else if (act.dataset.act === 'demo-fail') startProcessing('DOC-001', null, true);
+        else if (act.dataset.act === 'retry') startProcessing(Doc.docId, Doc.fileName, false);
+        else if (act.dataset.act === 'choose-other') {
+          clearDocTimers(); Doc.phase = 'select'; Doc.fileName = null; renderDocuments();
+        }
       }
     });
 
@@ -1378,6 +1817,15 @@
       renderIW02(currentIssue());
       var moved = $('[data-evtab="' + EV_TAB + '"]');
       if (moved) moved.focus();
+    });
+
+    /* The file's name and size are read in the browser. Nothing is uploaded,
+       nothing is parsed, and the reference is dropped immediately. */
+    $('#file-picker').addEventListener('change', function () {
+      var f = this.files && this.files[0];
+      if (!f) return;
+      startProcessing('DOC-001', f.name, false);
+      this.value = '';
     });
 
     window.addEventListener('hashchange', applyRoute);

@@ -880,3 +880,161 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
   .r01-decision .lbl, .r01-decision .ctx { color: #333; }
   .card, .r01-card, .r01-tile { box-shadow: none; border-color: #999; break-inside: avoid; }
 }
+
+/* ============================================================
+   10. D01–D02 — DOCUMENT TO INTELLIGENCE COMPANION
+   9A2 panels 10, 11, 11A, 12, 12A.
+   ============================================================ */
+
+.doc-wrap { max-width: 860px; }
+
+/* D01 — select / upload */
+.dropzone {
+  border: 2px dashed var(--border-2); border-radius: var(--r-lg);
+  background: var(--surface); padding: 40px 24px; text-align: center;
+  display: block; width: 100%; transition: border-color .14s ease, background .14s ease;
+}
+.dropzone:hover, .dropzone.is-over { border-color: var(--blue-500); background: var(--blue-050); }
+.dropzone .ico { width: 26px; height: 26px; margin: 0 auto 10px; color: var(--blue-600); }
+.dropzone b { display: block; font-size: 17px; font-weight: 650; color: var(--blue-600); }
+.dropzone span { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+.connect-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.connect-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border-2); background: var(--surface);
+  border-radius: var(--r-md); padding: 9px 14px; font-size: 13px; font-weight: 550;
+}
+.connect-btn:hover { background: var(--surface-2); }
+.connect-btn .ico { width: 16px; height: 16px; color: var(--muted); }
+
+.samplelist { display: grid; gap: 8px; }
+.sample {
+  display: grid; grid-template-columns: 30px minmax(0,1fr) auto;
+  gap: 12px; align-items: center; width: 100%; text-align: left;
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); padding: 12px 15px;
+}
+.sample:hover { border-color: var(--blue-500); background: var(--blue-050); }
+.sample .ico { width: 18px; height: 18px; color: var(--blue-600); }
+.sample b { font-size: 13.5px; font-weight: 600; }
+.sample span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.sample em { font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* D01-P — processing */
+.proc-head { font-size: 17px; font-weight: 650; }
+.proc-sub { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+.proc-barrow { display: flex; align-items: center; gap: 14px; margin: 18px 0 10px; }
+.proc-bar { flex: 1; height: 10px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.proc-fill {
+  display: block; height: 100%; border-radius: var(--r-pill);
+  background: var(--good-600); width: 0; transition: width .35s linear;
+}
+.proc-pct { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.proc-pages { font-size: 13px; color: var(--muted); }
+.proc-steps { display: grid; gap: 11px; margin-top: 18px; }
+.proc-step { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.proc-step .ico { width: 17px; height: 17px; }
+.proc-step.is-done { color: var(--text); }
+.proc-step.is-done .ico { color: var(--good-600); }
+.proc-step.is-active { color: var(--text); font-weight: 550; }
+.proc-step.is-active .dotring {
+  width: 15px; height: 15px; border-radius: var(--r-pill);
+  border: 2px solid var(--blue-500); border-top-color: transparent;
+  animation: spin .7s linear infinite;
+}
+.proc-step .dotring { width: 15px; height: 15px; border-radius: var(--r-pill); border: 2px solid var(--border-2); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* D01-F — failure */
+.fail-head {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--poor-600); font-size: 18px; font-weight: 700; margin-bottom: 14px;
+}
+.fail-head .ico { width: 22px; height: 22px; }
+.fail-body { text-align: center; }
+.fail-body p { font-size: 14.5px; font-weight: 600; margin-bottom: 10px; }
+.fail-reasons { display: inline-block; text-align: left; font-size: 13.5px; color: var(--text-2); }
+.fail-reasons li { margin: 4px 0; list-style: disc; margin-left: 18px; }
+.fail-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+
+/* D02 — candidate review (F09: individual cards, inline controls) */
+.cand-grid { display: grid; gap: 10px; }
+.cand {
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  background: var(--surface); padding: 15px 18px;
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: start;
+}
+.cand.is-confirmed { border-color: var(--good-600); background: var(--good-050); }
+.cand.is-edited    { border-color: var(--good-600); background: var(--good-050); }
+.cand.is-rejected  { opacity: .62; background: var(--surface-2); }
+.cand.is-deferred  { border-color: var(--fair-600); background: var(--fair-050); }
+
+.cand-label { font-size: 13.5px; font-weight: 650; color: var(--blue-700); }
+.cand-value { font-size: 15px; font-weight: 600; margin-top: 3px; }
+.cand-value .pre { font-weight: 400; color: var(--muted); }
+.cand-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.cand-conf {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-variant-numeric: tabular-nums; font-weight: 600;
+}
+.cand-conf i { display: block; width: 42px; height: 5px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.cand-conf i b { display: block; height: 100%; border-radius: var(--r-pill); }
+.cand-src { text-decoration: underline; background: none; border: 0; padding: 0; color: var(--blue-500); font-size: 12.5px; }
+.cand-snippet { font-size: 12.5px; color: var(--muted); margin-top: 7px; font-style: italic; }
+
+.cand-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.btn-sm { padding: 6px 13px; font-size: 12.5px; border-radius: var(--r-sm); font-weight: 600;
+          border: 1px solid var(--border-2); background: var(--surface); }
+.btn-sm:hover { background: var(--surface-2); }
+.btn-sm.solid { background: var(--blue-700); border-color: var(--blue-700); color: #fff; }
+.btn-sm.solid:hover { background: #002C86; }
+
+.cand-state {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: var(--r-pill);
+}
+.cand-state .ico { width: 12px; height: 12px; }
+.cs-confirmed { background: var(--good-050); color: var(--good-600); }
+.cs-edited    { background: var(--good-050); color: var(--good-600); }
+.cs-rejected  { background: var(--unknown-050); color: var(--unknown-600); }
+.cs-deferred  { background: var(--fair-050); color: #9A5B12; }
+
+/* D02-E — inline edit */
+.cand-edit { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.cand-edit input {
+  font: inherit; font-weight: 600; padding: 8px 12px; min-width: 160px;
+  border: 1px solid var(--blue-500); border-radius: var(--r-md); background: var(--surface);
+}
+
+.findings-bar {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 12px; padding: 13px; border-radius: var(--r-md);
+  background: var(--surface-2); font-size: 13px; color: var(--muted);
+}
+
+/* shared companion launcher */
+.launcher {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  border: 1px dashed var(--border-2); border-radius: var(--r-lg);
+  background: var(--surface); padding: 15px 18px; margin-top: 4px;
+}
+.launcher .ico { width: 22px; height: 22px; color: var(--blue-600); flex: none; }
+.launcher .t { flex: 1; min-width: 200px; }
+.launcher b { display: block; font-size: 13.5px; font-weight: 650; }
+.launcher span { font-size: 12.5px; color: var(--muted); }
+
+/* transient confirmations for simulated behaviour */
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: var(--navy-900); color: #fff; padding: 12px 18px;
+  border-radius: var(--r-md); box-shadow: var(--sh-3); z-index: 200;
+  font-size: 13.5px; display: flex; align-items: center; gap: 9px; max-width: 90vw;
+}
+.toast .ico { width: 16px; height: 16px; color: #7FD3A6; }
+
+@media (max-width: 700px) {
+  .cand { grid-template-columns: 1fr; }
+  .cand-actions { justify-content: flex-start; }
+}

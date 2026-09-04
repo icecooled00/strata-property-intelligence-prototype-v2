@@ -254,6 +254,20 @@
       <div class="r01" id="r01"></div>
     </section>
 
+    <!-- ========================================================
+         D01 / D02 — DOCUMENT TO INTELLIGENCE COMPANION
+         UC-P06. Launched from Evidence (S8A F05), never top-level nav.
+         ======================================================== -->
+    <section id="page-documents" class="page" hidden>
+      <nav class="crumb" id="doc-crumb" aria-label="Breadcrumb"></nav>
+      <div class="page-head">
+        <p class="eyebrow">Evidence companion</p>
+        <h1 id="doc-title">Turn a document into intelligence</h1>
+        <p class="page-sub" id="doc-sub">Select a sample document to see how source evidence becomes reviewable intelligence.</p>
+      </div>
+      <div class="doc-wrap" id="doc-body" aria-live="polite"></div>
+    </section>
+
   </main>
 </div>
 
@@ -343,6 +357,8 @@
     <button class="btn" type="button" data-close>Close</button>
   </div>
 </dialog>
+
+<input type="file" id="file-picker" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden>
 
 <script src="app.js"></script>
 </body>
