@@ -56,9 +56,9 @@ In that Sheet: **Extensions → Apps Script**. Delete anything there and paste t
 
 ```javascript
 // Strata Prototype — access log receiver.
-// Change SECRET to any random string, then use the same value as
-// SHEETS_WEBHOOK_TOKEN in Cloudflare.
-const SECRET = 'CHANGE-ME-to-a-random-string';
+// This SECRET must match SHEETS_WEBHOOK_TOKEN in Cloudflare. Generated
+// 2026-09-04; regenerate both together if it is ever exposed.
+const SECRET = 'qlRW8jcBSu1USiA5WeVi20XC4qoMVjFN42H54UiJ';
 
 function doPost(e) {
   try {
@@ -94,8 +94,7 @@ function doPost(e) {
 }
 ```
 
-Replace `CHANGE-ME-to-a-random-string` with something random. Keep a copy — you need it
-in step 4.
+The secret is already filled in. Nothing to change — paste it exactly as it is.
 
 ## Step 3 — Deploy the script
 
@@ -119,7 +118,7 @@ environment:
 | Name | Value |
 |---|---|
 | `SHEETS_WEBHOOK_URL` | the `/exec` URL from step 3 |
-| `SHEETS_WEBHOOK_TOKEN` | the same random string as `SECRET` |
+| `SHEETS_WEBHOOK_TOKEN` | `qlRW8jcBSu1USiA5WeVi20XC4qoMVjFN42H54UiJ` |
 
 Add `SHEETS_WEBHOOK_TOKEN` as an **encrypted** secret rather than plain text.
 
