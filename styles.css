@@ -73,8 +73,15 @@
 /* Deliberately no height:100% on html/body. Setting it makes body a separate
    scrolling box, so window.scrollTo/scrollY and scrollIntoView disagree about
    which element is scrolling. The shell sizes itself with min-height:100dvh. */
+/* iOS rubber-bands the whole document past its ends, which reads as the page
+   sliding under your finger and drags the fixed bottom bar with it. This stops
+   the bounce without touching normal scrolling. Safe-area insets only resolve
+   once the viewport meta carries viewport-fit=cover, which it now does. */
+html { overscroll-behavior-y: none; }
+
 body {
   margin: 0;
+  overscroll-behavior-y: none;
   background: var(--page);
   color: var(--text);
   font-family: var(--font-sans);
@@ -472,7 +479,16 @@ a { color: var(--blue-500); }
   /* Five equal slots. Buttons shrink rather than overflow on a 320px phone. */
   .rail-more { display: grid; }
   .rail-inner .rail-btn { flex: 1 1 0; min-width: 0; width: auto; max-width: 62px; }
-  .main { padding: 18px 16px calc(104px + env(safe-area-inset-bottom, 0px)); }
+  /* viewport-fit=cover puts the page under the notch, so the sides need the
+     insets too or content clips when the phone is turned. */
+  .main {
+    padding: 18px max(16px, env(safe-area-inset-right, 0px))
+             calc(104px + env(safe-area-inset-bottom, 0px))
+             max(16px, env(safe-area-inset-left, 0px));
+  }
+  .entry { padding: 24px max(16px, env(safe-area-inset-right, 0px))
+                    max(24px, env(safe-area-inset-bottom, 0px))
+                    max(16px, env(safe-area-inset-left, 0px)); }
   .health { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -767,7 +783,7 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
   display: grid; place-items: center; color: var(--muted); flex: none;
 }
 .dlg-close:hover { background: var(--surface-2); color: var(--text); }
-.dlg-body { padding: 18px 20px; overflow-y: auto; }
+.dlg-body { padding: 18px 20px; overflow-y: auto; overscroll-behavior: contain; }
 .dlg-foot {
   display: flex; justify-content: flex-end; gap: 10px;
   padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface-2);
