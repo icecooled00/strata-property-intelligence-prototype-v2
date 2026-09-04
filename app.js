@@ -485,6 +485,9 @@
     b.type = 'button';
     b.dataset.photo = photo.id;
     b.title = photo.caption;
+    /* Named on the button, not borrowed from the image, so the name survives
+       an image failure swapping in the placeholder. */
+    b.setAttribute('aria-label', 'View photograph: ' + photo.caption);
     b.appendChild(imageOrPlaceholder(photo.src, photo.alt, small ? 'Photo pending' : 'Photo pending'));
     return b;
   }
@@ -1802,6 +1805,7 @@
     if (photo) {
       var b = el('button', 'ev-thumb'); b.type = 'button'; b.dataset.photo = photo.id;
       b.title = photo.caption;
+      b.setAttribute('aria-label', 'View completion evidence: ' + photo.caption);
       b.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo'));
       thumbs.appendChild(b);
     }
