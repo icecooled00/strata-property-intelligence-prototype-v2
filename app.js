@@ -297,6 +297,20 @@
     renderHealth(prop);
     renderAttentionList(issues);
     renderAreas(prop);
+
+    var lz = $('#a01-launcher');
+    lz.textContent = '';
+    var l = el('div', 'launcher');
+    l.appendChild(icon('property'));
+    var lt = el('div', 't');
+    lt.appendChild(el('b', null, 'Field inspection demo'));
+    lt.appendChild(el('span', null,
+      'Photograph an asset on site and watch the observation become attention and a recommended action.'));
+    l.appendChild(lt);
+    var lb = el('button', 'btn', 'Start inspection');
+    lb.type = 'button'; lb.dataset.route = 'inspection';
+    l.appendChild(lb);
+    lz.appendChild(l);
   }
 
   /* ---------- RENDER: P00 --------------------------------- */
@@ -1429,6 +1443,275 @@
     host.appendChild(out);
   }
 
+  /* ---------- RENDER: I01–I04 INSPECTION COMPANION -------- */
+
+  var Insp = { step: 0, assetId: null, observation: null, condition: null, nextStep: null };
+
+  var INSP_STEPS = ['Capture photo', 'Asset', 'Observation', 'Resulting attention'];
+
+  function inspDefaults() {
+    var i = DATA.inspection || {};
+    if (!Insp.assetId)     Insp.assetId = i.defaultAssetId;
+    if (!Insp.observation) Insp.observation = i.observation;
+    if (!Insp.condition)   Insp.condition = i.condition;
+    if (!Insp.nextStep)    Insp.nextStep = i.nextStep;
+  }
+
+  function resetInspection() {
+    Insp = { step: 0, assetId: null, observation: null, condition: null, nextStep: null };
+  }
+
+  function stepper(activeIndex) {
+    var s = el('div', 'stepper');
+    INSP_STEPS.forEach(function (label, i) {
+      var chip = el('div', 'step-chip' +
+        (i < activeIndex ? ' is-done' : i === activeIndex ? ' is-current' : ''));
+      var n = el('span', 'n');
+      if (i < activeIndex) n.appendChild(icon('check-circle'));
+      else n.appendChild(document.createTextNode(String(i + 1)));
+      chip.appendChild(n);
+      chip.appendChild(document.createTextNode(label));
+      s.appendChild(chip);
+    });
+    return s;
+  }
+
+  function inspField(label, value, options, key) {
+    var f = el('div', 'insp-field');
+    var id = 'insp-' + key;
+    var lb = el('label', null, label); lb.setAttribute('for', id);
+    f.appendChild(lb);
+    var sel = el('select'); sel.id = id; sel.dataset.inspField = key;
+    (options || [value]).forEach(function (o) {
+      var opt = el('option', null, o.label || o);
+      opt.value = o.value != null ? o.value : o;
+      if (opt.value === value) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    f.appendChild(sel);
+    return f;
+  }
+
+  function assetOptions() {
+    return ((DATA.inspection && DATA.inspection.assetChoices) || []).map(function (id) {
+      var a = byId('assets', id);
+      return { value: id, label: a ? a.shortName : id };
+    });
+  }
+
+  function renderInspection() {
+    var host = $('#insp-body');
+    if (!host) return;
+    inspDefaults();
+    host.textContent = '';
+
+    var cr = $('#insp-crumb'); cr.textContent = '';
+    var back = el('button', null, 'Back to attention'); back.type = 'button';
+    back.dataset.route = 'attention';
+    cr.appendChild(back);
+    cr.appendChild(icon('chevron-right'));
+    cr.appendChild(el('span', 'here', INSP_STEPS[Math.min(Insp.step, 3)]));
+
+    host.appendChild(stepper(Math.min(Insp.step, 3)));
+
+    if (Insp.step === 0) return renderI00(host);
+    if (Insp.step === 1) return renderI01(host);
+    if (Insp.step === 2) return renderI02(host);
+    if (Insp.step === 3) return renderI03(host);
+    return renderI04(host);
+  }
+
+  /* Panel 14 — desktop web entry */
+  function renderI00(host) {
+    var i = DATA.inspection;
+    var photo = byId('photos', i.samplePhotoId);
+    $('#insp-title').textContent = 'Field inspection';
+    $('#insp-sub').textContent = 'Record what you saw on site. Continue to capture a photograph on a phone.';
+
+    var card = el('div', 'card');
+    var grid = el('div', 'insp-entry');
+    var form = el('div', 'insp-form');
+    form.appendChild(inspField('Asset', Insp.assetId, assetOptions(), 'assetId'));
+    form.appendChild(inspField('Location', i.location, [i.location], 'location'));
+    form.appendChild(inspField('Observation', Insp.observation,
+      [i.observation, 'Surface corrosion', 'Unusual noise in operation'], 'observation'));
+    form.appendChild(inspField('Condition', Insp.condition, ['Good', 'Fair', 'Poor', 'Unknown'], 'condition'));
+    form.appendChild(inspField('Next step', Insp.nextStep, ['Monitor', 'Schedule service', 'Assess'], 'nextStep'));
+    var cont = el('button', 'btn btn-solid', 'Continue →');
+    cont.type = 'button'; cont.dataset.act = 'insp-next';
+    form.appendChild(cont);
+    grid.appendChild(form);
+
+    var ph = el('div', 'insp-photo');
+    if (photo) ph.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo pending'));
+    grid.appendChild(ph);
+    card.appendChild(grid);
+    host.appendChild(card);
+
+    var note = el('p', 'quality-why');
+    note.textContent = 'No autonomous diagnosis is made. The condition and next step are recorded by the person on site.';
+    host.appendChild(note);
+  }
+
+  /* Panel 15 — capture photo, narrow width in a device frame */
+  function renderI01(host) {
+    var photo = byId('photos', DATA.inspection.samplePhotoId);
+    $('#insp-title').textContent = 'Capture photo';
+    $('#insp-sub').textContent = 'The field flow is responsive web at phone width, not a native application.';
+
+    var device = el('div', 'device');
+    var screen = el('div', 'device-screen');
+    var vf = el('div', 'viewfinder');
+    if (photo) vf.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo pending'));
+
+    var top = el('div', 'vf-top');
+    top.appendChild(icon('alert'));
+    top.appendChild(icon('chevron-right'));
+    vf.appendChild(top);
+
+    var ctl = el('div', 'vf-controls');
+    var retake = el('button', 'vf-btn', 'Retake');
+    retake.type = 'button'; retake.dataset.act = 'insp-back';
+    var shut = el('button', 'vf-shutter');
+    shut.type = 'button'; shut.dataset.act = 'insp-next';
+    shut.setAttribute('aria-label', 'Use this photo');
+    shut.appendChild(icon('property'));
+    var use = el('button', 'vf-btn', 'Use Photo');
+    use.type = 'button'; use.dataset.act = 'insp-next';
+    ctl.appendChild(retake); ctl.appendChild(shut); ctl.appendChild(use);
+    vf.appendChild(ctl);
+
+    screen.appendChild(vf);
+    device.appendChild(screen);
+    host.appendChild(device);
+    host.appendChild(el('p', 'device-note', 'Sample photograph. No camera is opened and no image is analysed.'));
+  }
+
+  /* Panel 16 — associate asset and observation */
+  function renderI02(host) {
+    var i = DATA.inspection;
+    var photo = byId('photos', i.samplePhotoId);
+    $('#insp-title').textContent = 'Observation and asset';
+    $('#insp-sub').textContent = 'Associate the photograph with an asset and record what was seen.';
+
+    var device = el('div', 'device');
+    var screen = el('div', 'device-screen');
+    var head = el('div', 'm-head');
+    head.appendChild(el('span', null, 'New observation'));
+    var x = el('button', 'dlg-close'); x.type = 'button'; x.dataset.act = 'insp-back';
+    x.setAttribute('aria-label', 'Back'); x.appendChild(icon('x'));
+    head.appendChild(x);
+    screen.appendChild(head);
+
+    var form = el('div', 'm-form');
+    var thumb = el('div', 'm-thumb');
+    if (photo) thumb.appendChild(imageOrPlaceholder(photo.src, photo.alt, 'Photo pending'));
+    form.appendChild(thumb);
+    form.appendChild(inspField('Asset', Insp.assetId, assetOptions(), 'assetId'));
+    form.appendChild(inspField('Location', i.location, [i.location], 'location'));
+    form.appendChild(inspField('Observation', Insp.observation,
+      [i.observation, 'Surface corrosion', 'Unusual noise in operation'], 'observation'));
+    form.appendChild(inspField('Condition', Insp.condition, ['Good', 'Fair', 'Poor', 'Unknown'], 'condition'));
+    form.appendChild(inspField('Action', Insp.nextStep, ['Monitor', 'Schedule service', 'Assess'], 'nextStep'));
+    var save = el('button', 'btn btn-solid', 'Save & Continue');
+    save.type = 'button'; save.dataset.act = 'insp-next';
+    form.appendChild(save);
+    screen.appendChild(form);
+    device.appendChild(screen);
+    host.appendChild(device);
+  }
+
+  /* Panel 17 — result on the phone */
+  function renderI03(host) {
+    var asset = byId('assets', Insp.assetId);
+    $('#insp-title').textContent = 'Observation saved';
+    $('#insp-sub').textContent = 'The observation is recorded against the asset.';
+
+    var device = el('div', 'device');
+    var screen = el('div', 'device-screen');
+    var saved = el('div', 'm-saved');
+    saved.appendChild(icon('check-circle'));
+    saved.appendChild(document.createTextNode('Observation Saved'));
+    screen.appendChild(saved);
+
+    var body = el('div', 'm-result');
+    function row(k, v, sub) {
+      var r = el('div', 'm-row');
+      r.appendChild(el('div', 'k', k));
+      r.appendChild(el('div', 'v', v));
+      if (sub) r.appendChild(el('div', 'sub', sub));
+      return r;
+    }
+    body.appendChild(row('Observation', Insp.observation, '(' + Insp.condition + ')'));
+    body.appendChild(row('Linked asset', asset ? asset.shortName : '—'));
+    body.appendChild(row('Recommended next step', Insp.nextStep));
+    var view = el('button', 'btn btn-solid', 'View resulting attention');
+    view.type = 'button'; view.dataset.act = 'insp-next';
+    view.style.marginTop = 'auto';
+    body.appendChild(view);
+    screen.appendChild(body);
+    device.appendChild(screen);
+    host.appendChild(device);
+  }
+
+  /* Panel 17A / I04 — resulting attention, back on the web */
+  function renderI04(host) {
+    var asset = byId('assets', Insp.assetId);
+    var r = (DATA.inspection && DATA.inspection.resultIssue) || {};
+    $('#insp-title').textContent = 'Resulting attention';
+    $('#insp-sub').textContent = 'The field observation becomes an attention item with a recommended next step.';
+
+    /* The demo state records that this attention item now exists. */
+    State.overlay.inspection = Object.assign({}, State.overlay.inspection, {
+      completed: true, assetId: Insp.assetId, observation: Insp.observation,
+      condition: Insp.condition, nextStep: Insp.nextStep
+    });
+    State.saveOverlay();
+
+    var card = el('div', 'result-card');
+    var head = el('div', 'result-head');
+    head.appendChild(icon('check-circle'));
+    head.appendChild(document.createTextNode('New Attention Created'));
+    card.appendChild(head);
+
+    var body = el('div', 'result-body');
+    var title = el('div', 'result-title');
+    var badge = el('span', 'attn-badge');
+    badge.style.background = 'var(--fair-600)';
+    badge.appendChild(icon('clock'));
+    title.appendChild(badge);
+    title.appendChild(document.createTextNode(asset ? asset.shortName : r.title));
+    body.appendChild(title);
+
+    var dl = el('dl', 'result-meta');
+    [['Condition', Insp.condition],
+     ['Priority', r.severity || 'Medium'],
+     ['Source', r.source || 'Field Observation'],
+     ['Recommended next step', Insp.nextStep],
+     ['Recorded', 'Today']].forEach(function (p) {
+      dl.appendChild(el('dt', null, p[0]));
+      dl.appendChild(el('dd', null, p[1]));
+    });
+    body.appendChild(dl);
+    card.appendChild(body);
+
+    var foot = el('div', 'result-foot');
+    var va = el('button', 'btn btn-solid', 'View recommended action');
+    va.type = 'button'; va.dataset.act = 'insp-view-action';
+    var again = el('button', 'btn', 'Run inspection again');
+    again.type = 'button'; again.dataset.act = 'insp-restart';
+    var ret = el('button', 'btn btn-quiet', 'Return to attention');
+    ret.type = 'button'; ret.dataset.route = 'attention';
+    foot.appendChild(va); foot.appendChild(again); foot.appendChild(ret);
+    card.appendChild(foot);
+    host.appendChild(card);
+
+    var note = el('p', 'quality-why');
+    note.style.marginTop = '12px';
+    note.textContent = 'The observation was recorded by a person. No condition was concluded automatically.';
+    host.appendChild(note);
+  }
+
   /* ---------- ACTIONS ------------------------------------- */
 
   function setFieldError(fieldId, errorId, message) {
@@ -1510,13 +1793,14 @@
     clearDocTimers();
     Doc.phase = 'select'; Doc.docId = null; Doc.fileName = null;
     Doc.progress = 0; Doc.stepIndex = 0; Doc.forceFail = false; Doc.editing = null;
+    resetInspection();
     renderAll();
     go('attention');
   }
 
   /* ---------- ROUTER -------------------------------------- */
 
-  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents'];
+  var PAGES = ['attention', 'property', 'issue', 'summary', 'documents', 'inspection'];
   var SECTIONS = ['why', 'evidence', 'action'];
 
   function heroIssueId() {
@@ -1536,6 +1820,8 @@
       target = '#/summary/' + (issueId || State.issueId || heroIssueId());
     } else if (route === 'documents') {
       target = '#/documents';
+    } else if (route === 'inspection') {
+      target = '#/inspection';
     } else {
       target = '#/' + (PAGES.indexOf(route) !== -1 ? route : 'attention');
     }
@@ -1565,6 +1851,7 @@
     if (page === 'property') { renderP00(); window.scrollTo(0, 0); }
     else if (page === 'summary') { window.scrollTo(0, 0); renderR01(parts[1]); }
     else if (page === 'documents') { window.scrollTo(0, 0); renderDocuments(); }
+    else if (page === 'inspection') { window.scrollTo(0, 0); renderInspection(); }
     else if (page === 'issue') {
       var id = parts[1] || heroIssueId();
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
@@ -1732,6 +2019,21 @@
         return;
       }
 
+      var insp = t.closest('[data-act^="insp-"]');
+      if (insp) {
+        var w = insp.dataset.act;
+        if (w === 'insp-next') { Insp.step = Math.min(Insp.step + 1, 4); renderInspection(); }
+        else if (w === 'insp-back') { Insp.step = Math.max(Insp.step - 1, 0); renderInspection(); }
+        else if (w === 'insp-restart') { resetInspection(); renderInspection(); }
+        else if (w === 'insp-view-action') {
+          toast('In the product this opens the recommended action for the new item. ' +
+                'The hero issue is shown here.');
+          go('issue', heroIssueId(), 'action');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       var conn = t.closest('[data-connect]');
       if (conn) {
         toast(conn.dataset.connect + ' is simulated in this prototype — no account is connected.');
@@ -1831,6 +2133,15 @@
       if (!f) return;
       startProcessing('DOC-001', f.name, false);
       this.value = '';
+    });
+
+    /* Inspection form fields feed the resulting attention item. */
+    document.addEventListener('change', function (e) {
+      var f = e.target.closest && e.target.closest('[data-insp-field]');
+      if (!f) return;
+      var key = f.dataset.inspField;
+      if (key === 'location') return;
+      Insp[key] = f.value;
     });
 
     window.addEventListener('hashchange', applyRoute);
