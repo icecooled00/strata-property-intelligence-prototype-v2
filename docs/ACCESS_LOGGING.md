@@ -146,18 +146,6 @@ Nothing else. No page views, no clickstream, no cookies. The in-browser research
 
 ---
 
-## If you also want a Google Sheet
-
-The code still supports mirroring to one. Set `SHEETS_WEBHOOK_URL` and
-`SHEETS_WEBHOOK_TOKEN` and it writes to both. Not required — D1 is the system of
-record. The Apps Script is in this file's git history at commit `3ef9093` if you
-want it back.
-
-The Sheet **Strata Prototype Access Log** already exists in the Property Intelligence
-folder. Leave it or delete it; nothing depends on it.
-
----
-
 ## Recorded risk — consent wording
 
 **Accepted by the founder on 2026-09-04.**

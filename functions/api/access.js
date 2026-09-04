@@ -10,12 +10,9 @@
  * to our own origin, so the page still makes zero external requests.
  *
  * Bindings:
- *   ACCESS_DB             D1 database binding (required to store anything)
+ *   ACCESS_DB     D1 database binding (required to store anything)
  * Optional:
- *   LOG_MAX_ROWS          rolling window size, default 1000
- * Optional legacy:
- *   SHEETS_WEBHOOK_URL    Apps Script /exec URL, if you also want a Sheet
- *   SHEETS_WEBHOOK_TOKEN  shared secret echoed to Apps Script
+ *   LOG_MAX_ROWS  rolling window size, default 1000
  *
  * If nothing is bound this still returns 204. Logging must never be able to
  * block someone entering the prototype.
@@ -60,7 +57,6 @@ export async function onRequestPost(context) {
     referer: clean(request.headers.get('Referer') || '')
   };
 
-  // ---- primary store: D1, kept to a rolling window
   if (env.ACCESS_DB) {
     const capRaw = parseInt(env.LOG_MAX_ROWS || String(DEFAULT_MAX_ROWS), 10);
     const cap = Math.min(Math.max(isNaN(capRaw) ? DEFAULT_MAX_ROWS : capRaw, 10), 100000);
@@ -96,22 +92,6 @@ export async function onRequestPost(context) {
     }
   } else {
     console.log('[access] ACCESS_DB not bound; record dropped');
-  }
-
-  // ---- optional: also mirror to a Google Sheet, if configured
-  if (env.SHEETS_WEBHOOK_URL) {
-    try {
-      await fetch(env.SHEETS_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          Object.assign({}, record, { token: env.SHEETS_WEBHOOK_TOKEN || '' })
-        ),
-        redirect: 'follow'
-      });
-    } catch (err) {
-      console.log('[access] sheet mirror failed:', err && err.message);
-    }
   }
 
   return new Response(null, { status: 204 });

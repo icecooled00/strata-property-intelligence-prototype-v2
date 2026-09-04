@@ -158,7 +158,7 @@ dependencies, CSS frameworks, UI or charting libraries, Docker, or any build ste
 | §3.4 Research capture | **Superseded** by the access log below. In-browser `strataEvents()` stays as-is for behavioural events. |
 | §3.5 Failure demo visibility | **No change.** The control stays visible on the Document Select screen. |
 | §3.6 Portfolio | **No date set.** |
-| **New — access logging** | **Built.** Name, email, timestamp, IP, country and user agent to a Google Sheet via a Cloudflare Pages Function. See `ACCESS_LOGGING.md`. Requires four setup steps from Edwin before it records anything. |
+| **New — access logging** | **Built.** Name, email, timestamp, IP, country and user agent to a Cloudflare D1 database via a Pages Function, capped at a rolling 1000 rows and readable as JSON or CSV. The Google Sheets route was tried first and reverted on 2026-09-04 — too much setup friction for no benefit. See `ACCESS_LOGGING.md`. Requires three dashboard steps before it records anything. |
 
 ### Recorded scope exception
 Access logging adds a **serverless function**, which S5A and S6A exclude. This is a
