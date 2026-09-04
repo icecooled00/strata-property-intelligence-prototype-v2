@@ -77,11 +77,15 @@
    sliding under your finger and drags the fixed bottom bar with it. This stops
    the bounce without touching normal scrolling. Safe-area insets only resolve
    once the viewport meta carries viewport-fit=cover, which it now does. */
-html { overscroll-behavior-y: none; }
+html { overscroll-behavior: none; }
 
 body {
   margin: 0;
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
+  /* A single unbroken token — a filename, a long email — used to widen the
+     whole document, which let the page pan sideways and took the fixed bottom
+     bar past the edge of the screen with it. Break rather than overflow. */
+  overflow-wrap: break-word;
   background: var(--page);
   color: var(--text);
   font-family: var(--font-sans);
@@ -971,7 +975,7 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
 }
 .sample:hover { border-color: var(--blue-500); background: var(--blue-050); }
 .sample .ico { width: 18px; height: 18px; color: var(--blue-600); }
-.sample b { font-size: 13.5px; font-weight: 600; }
+.sample b { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
 .sample span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
 .sample em { font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; }
 
