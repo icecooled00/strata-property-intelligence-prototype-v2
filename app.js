@@ -819,16 +819,30 @@
     setAnchor(section);
   }
 
+  var hasBooted = false;
+
   function setAnchor(section) {
     if (SECTIONS.indexOf(section) === -1) section = 'why';
     $$('.iw-anchor').forEach(function (a) {
       a.setAttribute('aria-current', String(a.dataset.anchor === section));
     });
-    /* "Why" is the top of the workspace, so scrolling to it would hide the
-       issue header and breadcrumb. Go to the top instead. */
-    if (section === 'why') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-    var target = document.getElementById('sec-' + section);
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    /* Animate once the app is running, but land instantly on a cold load:
+       a smooth scroll started before images have sized overshoots the target. */
+    var behavior = hasBooted ? 'smooth' : 'auto';
+    function doScroll() {
+      /* "Why" is the top of the workspace, so scrolling to it would hide the
+         issue header and breadcrumb. Go to the top instead. */
+      if (section === 'why') { window.scrollTo({ top: 0, behavior: behavior }); return; }
+      var target = document.getElementById('sec-' + section);
+      if (target) target.scrollIntoView({ behavior: behavior, block: 'start' });
+    }
+
+    if (hasBooted) { doScroll(); return; }
+    if (document.readyState === 'complete') requestAnimationFrame(doScroll);
+    else window.addEventListener('load', function () {
+      requestAnimationFrame(doScroll);
+    }, { once: true });
   }
 
   /* ---------- RENDER: R01 DECISION SUMMARY ---------------- */
@@ -1374,6 +1388,9 @@
     renderAll();
     if (State.session) { enterApp(); applyRoute(); }
     else { $('#view-entry').hidden = false; }
+    /* Everything after boot may animate. */
+    if (document.readyState === 'complete') hasBooted = true;
+    else window.addEventListener('load', function () { hasBooted = true; }, { once: true });
   }).catch(function (e) {
     console.error(e);
     fail('Could not load the demonstration data (' + e.message + ').');
