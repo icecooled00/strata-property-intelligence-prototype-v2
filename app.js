@@ -830,19 +830,31 @@
     /* Animate once the app is running, but land instantly on a cold load:
        a smooth scroll started before images have sized overshoots the target. */
     var behavior = hasBooted ? 'smooth' : 'auto';
-    function doScroll() {
-      /* "Why" is the top of the workspace, so scrolling to it would hide the
-         issue header and breadcrumb. Go to the top instead. */
-      if (section === 'why') { window.scrollTo({ top: 0, behavior: behavior }); return; }
+    var OFFSET = 62;   /* matches .iw-section scroll-margin-top */
+
+    /* Compute the destination explicitly. scrollIntoView resolves against
+       whatever the layout happens to be mid-load, which overshoots. */
+    function doScroll(how) {
+      if (section === 'why') { window.scrollTo({ top: 0, behavior: how }); return; }
       var target = document.getElementById('sec-' + section);
-      if (target) target.scrollIntoView({ behavior: behavior, block: 'start' });
+      if (!target) return;
+      var y = target.getBoundingClientRect().top + window.scrollY - OFFSET;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({ top: Math.max(0, Math.min(y, max)), behavior: how });
     }
 
-    if (hasBooted) { doScroll(); return; }
-    if (document.readyState === 'complete') requestAnimationFrame(doScroll);
-    else window.addEventListener('load', function () {
-      requestAnimationFrame(doScroll);
-    }, { once: true });
+    if (hasBooted) { doScroll(behavior); return; }
+
+    /* Cold load: position once the page has settled, then correct again in
+       case a late image shifted the layout under us. */
+    function settle() {
+      requestAnimationFrame(function () {
+        doScroll('auto');
+        setTimeout(function () { doScroll('auto'); }, 300);
+      });
+    }
+    if (document.readyState === 'complete') settle();
+    else window.addEventListener('load', settle, { once: true });
   }
 
   /* ---------- RENDER: R01 DECISION SUMMARY ---------------- */
