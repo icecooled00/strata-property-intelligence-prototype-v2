@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strata Property Intelligence</title>
+<meta name="description" content="Operational intelligence for communities. Powered by evidence. Research prototype using synthetic demonstration data.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2300349E'/><path d='M9 23V11l7-3 7 3v12' stroke='white' stroke-width='2' fill='none' stroke-linejoin='round'/><path d='M7 23h18' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================================================
+     E01 — VIEWER IDENTIFICATION
+     UC-P01. Decision D2: every field is captured as research data;
+     Unique ID is the only value that gates entry.
+     ============================================================ -->
+<div class="entry" id="view-entry">
+  <div class="entry-card">
+    <div class="entry-form-side">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg class="ico"><use href="assets/icons/icons.svg#i-property"></use></svg>
+        </span>
+        <span class="brand-text">Strata<br>Property<br>Intelligence</span>
+      </div>
+
+      <h1>Welcome to Strata Property&nbsp;Intelligence</h1>
+      <p class="entry-lede">Sign in to continue to your property operational workspace.</p>
+
+      <form id="entry-form" novalidate>
+        <div class="field">
+          <label for="f-name">Full name</label>
+          <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+        </div>
+        <div class="field">
+          <label for="f-email">Email address</label>
+          <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@strataproperty.com" required>
+        </div>
+        <div class="field">
+          <label for="f-uid">Unique ID</label>
+          <input id="f-uid" name="uid" type="password" autocomplete="off" placeholder="Enter your Unique ID" required
+                 aria-describedby="uid-error">
+          <p class="field-error" id="uid-error" hidden>
+            <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-alert"></use></svg>
+            <span></span>
+          </p>
+        </div>
+        <button class="btn-primary" type="submit">Enter prototype</button>
+      </form>
+
+      <p class="entry-legal">
+        By continuing, you agree to participate in a guided product-research session.
+        Your details are recorded only for this research session.
+      </p>
+
+      <p class="entry-synthetic">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-help-dot"></use></svg>
+        Uses synthetic demonstration data only
+      </p>
+    </div>
+
+    <figure class="entry-photo" id="entry-photo">
+      <!-- Photograph 01 from docs/PHOTO_PROMPTS.md -->
+    </figure>
+  </div>
+</div>
+
+<!-- ============================================================
+     APPLICATION SHELL
+     F01: compact left rail — Attention / Property / Evidence / Action.
+     ============================================================ -->
+<div class="app" id="view-app" hidden>
+  <nav class="rail" aria-label="Primary">
+    <div class="rail-inner">
+      <span class="rail-mark" aria-hidden="true">
+        <svg class="ico"><use href="assets/icons/icons.svg#i-property"></use></svg>
+      </span>
+
+      <button class="rail-btn" data-route="attention" type="button">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-attention"></use></svg>
+        <span class="rail-label">Attention</span><span class="sr-only">Attention</span>
+      </button>
+      <button class="rail-btn" data-route="property" type="button">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-property"></use></svg>
+        <span class="rail-label">Property</span><span class="sr-only">Property</span>
+      </button>
+      <button class="rail-btn" data-route="evidence" type="button">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-evidence"></use></svg>
+        <span class="rail-label">Evidence</span><span class="sr-only">Evidence</span>
+      </button>
+      <button class="rail-btn" data-route="action" type="button">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-action"></use></svg>
+        <span class="rail-label">Action</span><span class="sr-only">Action</span>
+      </button>
+
+      <div class="rail-foot">
+        <button class="rail-btn" id="btn-reset" type="button">
+          <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-reset"></use></svg>
+          <span class="rail-label">Reset demo</span><span class="sr-only">Reset demo</span>
+        </button>
+        <button class="rail-viewer" id="btn-viewer" type="button" title="Exit prototype">
+          <span id="viewer-initials">–</span>
+          <span class="sr-only">Viewer — exit prototype</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main" id="main" tabindex="-1">
+
+    <!-- ========================================================
+         A01 — ATTENTION / PROPERTY HEALTH
+         UC-P02. Attention is the post-entry landing screen (S8A F01).
+         ======================================================== -->
+    <section id="page-attention" class="page">
+      <div class="page-head">
+        <p class="eyebrow" id="a01-eyebrow">Thursday, September 3</p>
+        <div class="prop-head">
+          <div>
+            <h1 id="a01-prop-name">Harbour Heights</h1>
+            <p class="prop-meta" id="a01-prop-meta"></p>
+          </div>
+          <button class="link-more" type="button" data-route="property">
+            View full history
+            <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-chevron-right"></use></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="health" id="a01-health" role="list" aria-label="Property health indicators"></div>
+      </div>
+
+      <div class="attn-grid" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 id="a01-attn-count">Top Attention</h2>
+              <p class="sub">Ranked by urgency, consequence and evidence quality</p>
+            </div>
+          </div>
+          <div id="a01-attn-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Building Status by Area</h2></div>
+          <div class="bsa-body">
+            <figure class="bsa-figure" id="a01-building"></figure>
+            <div id="a01-areas"></div>
+          </div>
+          <p class="bsa-updated" id="a01-updated"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         P00 — PROPERTY SUMMARY
+         Supporting drill-down. 9A2 panel 09.
+         ======================================================== -->
+    <section id="page-property" class="page" hidden>
+      <div class="page-head">
+        <p class="eyebrow">Property</p>
+        <div class="prop-head">
+          <div>
+            <h1 id="p00-name">Harbour Heights</h1>
+            <p class="prop-meta" id="p00-meta"></p>
+          </div>
+          <button class="link-more" type="button" data-route="attention">
+            <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-arrow-left"></use></svg>
+            Back to attention
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="p00-grid">
+          <div class="p00-photo" id="p00-photo"></div>
+          <div class="p00-status">
+            <h2>Status by Area</h2>
+            <div id="p00-areas"></div>
+            <p class="p00-updated" id="p00-updated"></p>
+          </div>
+        </div>
+      </div>
+
+      <dl class="p00-facts" id="p00-facts"></dl>
+    </section>
+
+    <!-- Wave 2 and Wave 4 land here. -->
+    <section id="page-evidence" class="page" hidden>
+      <div class="stub card card-pad">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-evidence"></use></svg>
+        <b>Evidence workspace arrives in Wave 2</b>
+        <p>IW02 and the source-preview overlay are built once the continuous issue workspace lands.</p>
+      </div>
+    </section>
+
+    <section id="page-action" class="page" hidden>
+      <div class="stub card card-pad">
+        <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-action"></use></svg>
+        <b>Action workspace arrives in Wave 2</b>
+        <p>IW03 with the Assign and Defer overlays is built alongside the issue workspace.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

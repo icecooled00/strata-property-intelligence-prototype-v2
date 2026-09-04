@@ -1,0 +1,439 @@
+{
+  "meta": {
+    "datasetVersion": "1.0.0",
+    "frozen": "2026-09-03",
+    "demoToday": "2026-09-03",
+    "note": "Canonical synthetic dataset. Every screen reads from these objects and IDs. See docs/WAVE0_DECISIONS.md."
+  },
+
+  "access": {
+    "uniqueIdLabel": "Unique ID",
+    "uniqueIdValue": "Vancouver",
+    "caseSensitive": true
+  },
+
+  "portfolio": {
+    "id": "PF-001",
+    "name": "Coastal Property Management",
+    "propertyCount": 18,
+    "needingAttention": 3,
+    "highRisk": 1,
+    "upcomingObligations": 7,
+    "_rendered": false,
+    "_note": "Decision D7 - portfolio deferred to a later delivery. Retained unrendered so a later delivery needs no data migration."
+  },
+
+  "properties": [
+    {
+      "id": "PROP-HH-001",
+      "name": "Harbour Heights",
+      "city": "Vancouver, BC",
+      "units": 134,
+      "yearBuilt": 2009,
+      "storeys": 22,
+      "heroImage": "assets/images/hero-building-exterior.jpg",
+      "elevationImage": "assets/images/property-north-elevation.jpg",
+      "cutoutImage": "assets/images/building-cutout.png",
+      "lastUpdated": "2026-09-03",
+      "health": {
+        "overall": 71,
+        "compliance": 78,
+        "maintenance": 64,
+        "money": 82,
+        "evidence": 38
+      },
+      "areas": [
+        { "name": "Roof",             "pct": 86, "status": "Good" },
+        { "name": "Envelope",         "pct": 42, "status": "Poor" },
+        { "name": "Elevators",        "pct": 55, "status": "Fair" },
+        { "name": "Fire/Life Safety", "pct": 85, "status": "Good" },
+        { "name": "Plumbing",         "pct": 70, "status": "Fair" },
+        { "name": "Site",             "pct": 75, "status": "Good" }
+      ]
+    }
+  ],
+
+  "assets": [
+    {
+      "id": "AST-ENV-N",
+      "propertyId": "PROP-HH-001",
+      "name": "Building Envelope — North Elevation",
+      "shortName": "North Elevation",
+      "type": "Building envelope",
+      "condition": "Unknown",
+      "lastVerified": "2023-06-15"
+    },
+    {
+      "id": "AST-ELV-1",
+      "propertyId": "PROP-HH-001",
+      "name": "Elevator — Car 1 (Main Lobby)",
+      "shortName": "Elevator — Car 1",
+      "type": "Elevator",
+      "condition": "Fair",
+      "lastVerified": "2026-08-12"
+    },
+    {
+      "id": "AST-ROOF",
+      "propertyId": "PROP-HH-001",
+      "name": "Roof — Main Membrane",
+      "shortName": "Roof",
+      "type": "Roof",
+      "condition": "Good",
+      "lastVerified": "2026-05-04"
+    }
+  ],
+
+  "obligations": [
+    {
+      "id": "OBL-001",
+      "propertyId": "PROP-HH-001",
+      "title": "Building Envelope Condition Assessment",
+      "authority": "Strata bylaw 42 / depreciation report schedule",
+      "dueDate": "2026-09-27",
+      "recurrence": "Every 5 years",
+      "nextOccurrence": "2031-09-27"
+    },
+    {
+      "id": "OBL-002",
+      "propertyId": "PROP-HH-001",
+      "title": "Fire Alarm Annual Test",
+      "authority": "BC Fire Code",
+      "dueDate": "2026-10-10",
+      "recurrence": "Annual",
+      "nextOccurrence": "2027-10-10"
+    }
+  ],
+
+  "issues": [
+    {
+      "id": "ISS-001",
+      "propertyId": "PROP-HH-001",
+      "assetId": "AST-ENV-N",
+      "obligationId": "OBL-001",
+      "actionId": "ACT-001",
+      "isHero": true,
+      "title": "Building envelope condition is unknown",
+      "severity": "High",
+      "dueDate": "2026-09-27",
+      "dueInDays": 24,
+      "oneLineReason": "Recent moisture staining on the north elevation has not been assessed.",
+      "whyItMatters": "Recent moisture staining on the north elevation has not been assessed. The last envelope condition assessment is from 2023, and no verification has been carried out since. The condition cannot be confirmed either way.",
+      "consequence": "Undiagnosed envelope water ingress progresses behind the cladding. Remediation cost rises with delay, and the assessment obligation date is missed.",
+      "uncertainty": "Condition is Unknown pending assessment. The repair exposure is an order-of-magnitude estimate only and should not be treated as a quote.",
+      "evidenceIds": ["EV-001", "EV-002", "EV-003", "EV-004"],
+      "photoIds": ["PH-001", "PH-002", "PH-003"],
+      "exposure": { "low": 85000, "high": 140000, "currency": "CAD", "confidence": "Low" },
+      "funding": { "reserveBalance": 310000, "allocated": 0, "gap": 140000 },
+      "history": [
+        { "date": "2023-06-15", "label": "Envelope Condition Assessment", "detail": "Consultant report. North elevation sealant flagged as monitor." },
+        { "date": "2024-08-02", "label": "Sealant maintenance", "detail": "Partial, north face only. No verification recorded." },
+        { "date": "2026-08-19", "label": "Moisture staining reported", "detail": "Resident report, north elevation. Not inspected." }
+      ],
+      "actNowVsDefer": {
+        "unit": "Relative risk",
+        "labels": ["-6mo", "-3mo", "Now", "+3mo", "+6mo"],
+        "actNow": [42, 46, 50, 34, 22],
+        "defer":  [42, 46, 50, 68, 88]
+      }
+    },
+    {
+      "id": "ISS-002",
+      "propertyId": "PROP-HH-001",
+      "assetId": "AST-ELV-1",
+      "actionId": null,
+      "isHero": false,
+      "title": "Elevator maintenance evidence conflicts",
+      "severity": "Medium",
+      "dueDate": null,
+      "dueInDays": null,
+      "oneLineReason": "The service log and the contractor invoice show different completion dates.",
+      "whyItMatters": "Two sources disagree about when the last elevator service was completed. Until that is reconciled, the maintenance record cannot be relied on.",
+      "consequence": "Service interval may be longer than recorded.",
+      "uncertainty": "Conflicting sources. Unresolved until reviewed.",
+      "evidenceIds": ["EV-005", "EV-006"],
+      "photoIds": [],
+      "exposure": null,
+      "history": []
+    },
+    {
+      "id": "ISS-003",
+      "propertyId": "PROP-HH-001",
+      "assetId": null,
+      "obligationId": "OBL-002",
+      "isHero": false,
+      "title": "Fire Alarm Test",
+      "severity": "Medium",
+      "dueDate": "2026-10-10",
+      "dueLabel": "Due Oct 10",
+      "oneLineReason": "Annual test due under BC Fire Code.",
+      "evidenceIds": [],
+      "photoIds": []
+    },
+    {
+      "id": "ISS-004",
+      "propertyId": "PROP-HH-001",
+      "assetId": null,
+      "isHero": false,
+      "title": "Garage Drainage",
+      "severity": "Low",
+      "dueDate": "2026-10-05",
+      "dueLabel": "Due in 32 days",
+      "oneLineReason": "Scheduled drainage clearing.",
+      "evidenceIds": [],
+      "photoIds": []
+    },
+    {
+      "id": "ISS-005",
+      "propertyId": "PROP-HH-001",
+      "assetId": null,
+      "isHero": false,
+      "title": "Backflow Test",
+      "severity": "Low",
+      "dueDate": "2026-09-30",
+      "dueLabel": "Due Sep 30",
+      "oneLineReason": "Annual backflow prevention test.",
+      "evidenceIds": [],
+      "photoIds": []
+    },
+    {
+      "id": "ISS-006",
+      "propertyId": "PROP-HH-001",
+      "assetId": null,
+      "isHero": false,
+      "title": "Irrigation Audit",
+      "severity": "Low",
+      "dueDate": "2026-10-15",
+      "dueLabel": "Due Oct 15",
+      "oneLineReason": "Seasonal irrigation shutdown and audit.",
+      "evidenceIds": [],
+      "photoIds": []
+    }
+  ],
+
+  "documents": [
+    {
+      "id": "DOC-001",
+      "name": "Building_Envelope_Condition_Assessment_2023.pdf",
+      "type": "Consultant report",
+      "date": "2023-06-15",
+      "pages": 12,
+      "previewExcerpt": "5.3  NORTH ELEVATION\n\nSealant joints at the north elevation show early-stage adhesive failure at isolated locations. Staining observed below slab edges at levels 8 through 14 is consistent with water tracking, though no invasive review was undertaken as part of this scope.\n\nRecommendation: monitor and reassess within 24 months. A targeted invasive review is advised should staining progress."
+    },
+    {
+      "id": "DOC-002",
+      "name": "Email_from_Envelope_Consultant.pdf",
+      "type": "Correspondence",
+      "date": "2021-04-02",
+      "pages": 2,
+      "previewExcerpt": "Further to our site walk, we would suggest budgeting for a full envelope review within the next reporting cycle. Nothing observed requires immediate action."
+    },
+    {
+      "id": "DOC-003",
+      "name": "Elevator_Service_Log_2026.pdf",
+      "type": "Service log",
+      "date": "2026-08-12",
+      "pages": 4,
+      "previewExcerpt": "Car 1 — scheduled maintenance completed 12 Aug 2026."
+    },
+    {
+      "id": "DOC-004",
+      "name": "Contractor_Invoice_8841.pdf",
+      "type": "Invoice",
+      "date": "2026-07-29",
+      "pages": 1,
+      "previewExcerpt": "Elevator Car 1, scheduled maintenance, completed 29 Jul 2026."
+    }
+  ],
+
+  "evidence": [
+    {
+      "id": "EV-001",
+      "issueId": "ISS-001",
+      "documentId": "DOC-001",
+      "sourceType": "Consultant report",
+      "date": "2023-06-15",
+      "ageDays": 1176,
+      "ageLabel": "1,176 days old",
+      "state": "Needs Review",
+      "confidence": 45,
+      "snippet": "Sealant joints at the north elevation show early-stage adhesive failure at isolated locations... Recommendation: monitor and reassess within 24 months.",
+      "relation": "Primary supporting evidence for the envelope obligation.",
+      "photoIds": ["PH-002"]
+    },
+    {
+      "id": "EV-002",
+      "issueId": "ISS-001",
+      "documentId": "DOC-002",
+      "sourceType": "Correspondence",
+      "date": "2021-04-02",
+      "ageDays": 1980,
+      "ageLabel": "5+ years old",
+      "state": "Needs Review",
+      "confidence": 20,
+      "snippet": "We would suggest budgeting for a full envelope review within the next reporting cycle. Nothing observed requires immediate action.",
+      "relation": "Background context. Superseded by the 2023 assessment.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-003",
+      "issueId": "ISS-001",
+      "documentId": null,
+      "sourceType": "Resident report",
+      "date": "2026-08-19",
+      "ageDays": 15,
+      "ageLabel": "15 days old",
+      "state": "Unknown",
+      "confidence": null,
+      "snippet": "Staining reported on the north elevation, levels 9–12. No inspection has been carried out.",
+      "relation": "Trigger for the current attention item. Unverified.",
+      "photoIds": ["PH-001", "PH-003"]
+    },
+    {
+      "id": "EV-004",
+      "issueId": "ISS-001",
+      "documentId": null,
+      "sourceType": "Condition verification",
+      "date": null,
+      "ageLabel": null,
+      "state": "Missing",
+      "confidence": null,
+      "snippet": "No post-2023 condition verification exists for the north elevation.",
+      "relation": "Required to satisfy the assessment obligation. Absent.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-005",
+      "issueId": "ISS-002",
+      "documentId": "DOC-003",
+      "sourceType": "Service log",
+      "date": "2026-08-12",
+      "ageLabel": "22 days old",
+      "state": "Conflicting",
+      "confidence": 60,
+      "snippet": "Car 1 — scheduled maintenance completed 12 Aug 2026.",
+      "relation": "Conflicts with the contractor invoice.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-006",
+      "issueId": "ISS-002",
+      "documentId": "DOC-004",
+      "sourceType": "Invoice",
+      "date": "2026-07-29",
+      "ageLabel": "36 days old",
+      "state": "Conflicting",
+      "confidence": 60,
+      "snippet": "Elevator Car 1, scheduled maintenance, completed 29 Jul 2026.",
+      "relation": "Conflicts with the service log.",
+      "photoIds": []
+    }
+  ],
+
+  "evidenceQuality": {
+    "ISS-001": { "label": "Poor", "pct": 38, "reason": "Latest verification is three years old and the current report is unassessed." },
+    "ISS-002": { "label": "Conflicting", "pct": 55, "reason": "Two sources disagree on the completion date." }
+  },
+
+  "photos": [
+    { "id": "PH-001", "assetId": "AST-ENV-N", "src": "assets/images/evidence-staining-wide.jpg", "alt": "Water staining streaks below balcony slab edges on the north elevation", "caption": "North elevation, levels 9–12 — staining below slab edges", "capturedAt": "2026-08-19", "kind": "evidence" },
+    { "id": "PH-002", "assetId": "AST-ENV-N", "src": "assets/images/evidence-sealant-detail.jpg", "alt": "Cracked sealant joint pulling away from the cladding substrate", "caption": "Sealant joint, level 11 — adhesive failure", "capturedAt": "2026-08-19", "kind": "evidence" },
+    { "id": "PH-003", "assetId": "AST-ENV-N", "src": "assets/images/evidence-balcony-slab.jpg", "alt": "Efflorescence and a damp patch on a balcony slab soffit", "caption": "Balcony soffit, level 10 — efflorescence", "capturedAt": "2026-08-19", "kind": "evidence" },
+    { "id": "PH-004", "assetId": "AST-ELV-1", "src": "assets/images/inspection-elevator-machine-room.jpg", "alt": "Elevator machine room with an oil stain at the base of the traction machine", "caption": "Machine room — Car 1", "capturedAt": "2026-09-03", "kind": "inspection" },
+    { "id": "PH-005", "assetId": "AST-ENV-N", "src": "assets/images/completion-evidence.jpg", "alt": "Swing stage rigged against the north elevation for a facade assessment", "caption": "Assessment access, north elevation", "capturedAt": "2026-09-30", "kind": "completion" }
+  ],
+
+  "owners": [
+    { "id": "OWN-001", "name": "Jordan Lee",  "role": "Property Manager", "kind": "internal" },
+    { "id": "OWN-002", "name": "Sam Okafor",  "role": "Building Manager", "kind": "internal" },
+    { "id": "OWN-003", "name": "Coastal Envelope Consulting Ltd.", "role": "Envelope consultant", "kind": "vendor" }
+  ],
+
+  "actions": [
+    {
+      "id": "ACT-001",
+      "issueId": "ISS-001",
+      "title": "Commission Building Envelope Assessment",
+      "rationale": "Establish actual condition before the obligation date so the repair decision rests on evidence rather than an estimate.",
+      "ownerId": "OWN-001",
+      "targetDate": "2026-09-27",
+      "status": "Recommended",
+      "cost": { "low": 4000, "high": 7000, "currency": "CAD", "confidence": "High", "note": "Routine engagement, well-priced locally." },
+      "riskOfDeferral": "The assessment obligation date is missed and the $85K–$140K exposure estimate stays unverified.",
+      "evidenceIds": ["EV-001", "EV-003", "EV-004"],
+      "completionTarget": "2026-09-30",
+      "completion": {
+        "note": "Envelope assessment completed. North elevation condition confirmed and documented.",
+        "photoId": "PH-005",
+        "completedOn": "2026-09-30",
+        "byOwnerId": "OWN-001",
+        "evidenceCount": 4
+      }
+    }
+  ],
+
+  "costBenchmark": {
+    "issueId": "ISS-001",
+    "expectedRange": { "low": 4000, "high": 7000 },
+    "exampleQuote": { "amount": 6200, "vendorId": "OWN-003" },
+    "verdict": "within",
+    "source": "3 comparable Lower Mainland engagements, 2025–2026",
+    "assumptions": "Assumes visual plus limited invasive review. No scaffolding included.",
+    "confidence": "Medium"
+  },
+
+  "candidates": [
+    { "id": "CND-001", "documentId": "DOC-001", "category": "obligation", "label": "Assessment obligation date", "value": "Sep 27, 2026", "confidence": 91, "sourcePage": 2,  "sourceSnippet": "reassess within 24 months of report date", "state": "Candidate" },
+    { "id": "CND-002", "documentId": "DOC-001", "category": "fact",       "label": "Estimated repair cost",     "value": "$112,000",    "confidence": 64, "sourcePage": 4,  "sourceSnippet": "order-of-magnitude allowance for remedial sealant and localised cladding works", "state": "Candidate", "editedValue": "$124,000" },
+    { "id": "CND-003", "documentId": "DOC-001", "category": "fact",       "label": "Warranty expiry",           "value": "Dec 31, 2026", "confidence": 88, "sourcePage": 9,  "sourceSnippet": "cladding system warranty expires 31 December 2026", "state": "Candidate" },
+    { "id": "CND-004", "documentId": "DOC-001", "category": "asset",      "label": "North elevation cladding",  "value": "Metal panel rainscreen", "confidence": 77, "sourcePage": 3, "sourceSnippet": "north elevation comprises a metal panel rainscreen assembly", "state": "Candidate" },
+    { "id": "CND-005", "documentId": "DOC-001", "category": "gap",        "label": "No post-2023 verification", "value": "Evidence gap", "confidence": null, "sourcePage": 11, "sourceSnippet": "no further review has been commissioned since this report", "state": "Candidate" }
+  ],
+
+  "candidateTotalFindings": 12,
+
+  "processing": {
+    "documentId": "DOC-001",
+    "steps": [
+      { "label": "Extracting text",        "ms": 900 },
+      { "label": "Identifying key data",   "ms": 1100 },
+      { "label": "Mapping to building",    "ms": 900 },
+      { "label": "Analyzing requirements", "ms": 1300 }
+    ],
+    "totalPages": 12,
+    "failureReasons": ["Unsupported format", "Corrupted file", "Encrypted content"]
+  },
+
+  "inspection": {
+    "assetChoices": ["AST-ELV-1", "AST-ENV-N", "AST-ROOF"],
+    "defaultAssetId": "AST-ELV-1",
+    "samplePhotoId": "PH-004",
+    "location": "Main Lobby — Car 1",
+    "observation": "Minor oil leak at base",
+    "condition": "Fair",
+    "nextStep": "Monitor",
+    "resultIssue": {
+      "id": "ISS-007",
+      "title": "Elevator — Car 1",
+      "severity": "Medium",
+      "condition": "Fair",
+      "source": "Field Observation"
+    }
+  },
+
+  "vocabularies": {
+    "evidenceStates": ["Verified", "Needs Review", "Conflicting", "Missing", "Unknown"],
+    "candidateStates": ["Candidate", "Confirmed", "Edited–Confirmed", "Rejected", "Deferred Review"],
+    "actionStates": ["Recommended", "Assigned", "In Progress", "Completed"],
+    "processingStates": ["Ready", "Processing", "Review Results", "Failed"],
+    "severities": ["Low", "Medium", "High", "Critical"],
+    "areaStatuses": ["Good", "Fair", "Poor"]
+  },
+
+  "deferReasons": [
+    "Awaiting budget approval",
+    "Awaiting council decision",
+    "Vendor unavailable",
+    "Superseded by other work",
+    "Other"
+  ]
+}
