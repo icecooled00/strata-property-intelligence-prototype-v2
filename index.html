@@ -32,11 +32,21 @@
       <form id="entry-form" novalidate>
         <div class="field">
           <label for="f-name">Full name</label>
-          <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+          <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Your name"
+                 required aria-describedby="name-error">
+          <p class="field-error" id="name-error" hidden>
+            <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-alert"></use></svg>
+            <span></span>
+          </p>
         </div>
         <div class="field">
           <label for="f-email">Email address</label>
-          <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@strataproperty.com" required>
+          <input id="f-email" name="email" type="email" autocomplete="email" placeholder="you@strataproperty.com"
+                 required aria-describedby="email-error">
+          <p class="field-error" id="email-error" hidden>
+            <svg class="ico" aria-hidden="true"><use href="assets/icons/icons.svg#i-alert"></use></svg>
+            <span></span>
+          </p>
         </div>
         <div class="field">
           <label for="f-uid">Unique ID</label>

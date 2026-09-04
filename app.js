@@ -859,12 +859,19 @@
     /* 1 — the explicit decision required (F08 leads with this) */
     var dec = el('div', 'r01-decision');
     dec.appendChild(el('p', 'lbl', 'Decision required'));
-    /* The action title already leads with a verb, so it states the decision
-       directly under the "Decision required" label. */
-    dec.appendChild(el('h2', null,
-      (act ? act.title : 'Approve the recommended action') +
-      ' at ' + (act ? moneyRange(act.cost) : '—') +
-      ', to be completed before ' + fmtDate(issue.dueDate) + '.'));
+    /* Only state a decision when there is one. An issue with no recommended
+       action has nothing to put to a board yet, and saying otherwise would be
+       a false claim in a document meant for governance. */
+    if (act) {
+      var sentence = act.title + ' at ' + moneyRange(act.cost);
+      if (issue.dueDate) sentence += ', to be completed before ' + fmtDate(issue.dueDate);
+      dec.appendChild(el('h2', null, sentence + '.'));
+    } else {
+      dec.querySelector('.lbl').textContent = 'No decision required yet';
+      dec.appendChild(el('h2', null,
+        'This issue has no recommended action. It is included for awareness ' +
+        'while the evidence is reconciled.'));
+    }
     dec.appendChild(el('p', 'ctx',
       (asset ? asset.name + ' · ' : '') + 'Current condition ' +
       (asset ? asset.condition : 'Unknown') + ' · ' + issue.severity + ' priority'));
@@ -879,16 +886,22 @@
       t.appendChild(el('div', 's', s));
       return t;
     }
-    tiles.appendChild(tile('t-urgency', 'Urgency',
-      issue.dueInDays + ' days', 'Obligation due ' + fmtDate(issue.dueDate), true));
+    var urgencyValue = issue.dueInDays != null ? issue.dueInDays + ' days'
+                     : issue.dueDate ? fmtDate(issue.dueDate) : 'No deadline';
+    var urgencySub = issue.dueDate ? 'Obligation due ' + fmtDate(issue.dueDate)
+                                   : 'No obligation date recorded';
+    tiles.appendChild(tile('t-urgency', 'Urgency', urgencyValue, urgencySub,
+      issue.dueInDays != null && issue.dueInDays <= 30));
     var primaryEv = evidence.filter(function (e) { return e && e.ageLabel; })[0];
     tiles.appendChild(tile('t-evidence', 'Evidence quality',
       q ? q.label + ' · ' + q.pct + '%' : 'Unknown',
       primaryEv ? 'Latest verification ' + primaryEv.ageLabel : 'No dated verification on file',
       true));
     tiles.appendChild(tile('t-cost', 'Cost',
-      act ? moneyRange(act.cost) : '—',
-      'Assessment. Repair exposure ' + moneyRange(issue.exposure), false));
+      act ? moneyRange(act.cost) : 'Not costed',
+      issue.exposure ? 'Recommended action. Repair exposure ' + moneyRange(issue.exposure)
+                     : 'No costed exposure recorded',
+      false));
     host.appendChild(tiles);
 
     /* 3 — why it matters */
@@ -954,9 +967,11 @@
     kvrow('Owner', owner ? owner.name + ' (' + owner.role + ')' : 'Unassigned');
     kvrow('Due date', act ? fmtDate(act.targetDate) : '—');
     kvrow('Est. cost', act ? moneyRange(act.cost) : '—');
-    kvrow('Status', act && act.deferred ? 'Deferred — issue remains open' : 'Active',
-      act && act.deferred ? 'neg' : 'pos');
-    kvrow('Confidence', act ? act.cost.confidence : '—', 'pos');
+    kvrow('Status',
+      !act ? 'No action recorded'
+           : act.deferred ? 'Deferred — issue remains open' : 'Active',
+      !act ? null : act.deferred ? 'neg' : 'pos');
+    kvrow('Confidence', act ? act.cost.confidence : '—', act ? 'pos' : null);
     card.appendChild(kv);
 
     var ft = el('div', 'ft');
@@ -979,35 +994,51 @@
 
   /* ---------- ACTIONS ------------------------------------- */
 
+  function setFieldError(fieldId, errorId, message) {
+    var field = $('#' + fieldId), box = $('#' + errorId);
+    if (message) {
+      $('#' + errorId + ' span').textContent = message;
+      box.hidden = false;
+      field.setAttribute('aria-invalid', 'true');
+    } else {
+      box.hidden = true;
+      field.removeAttribute('aria-invalid');
+    }
+    return !message;
+  }
+
   function submitEntry(ev) {
     ev.preventDefault();
     var name  = $('#f-name').value.trim();
     var email = $('#f-email').value.trim();
     var uid   = $('#f-uid').value;
 
-    var errBox = $('#uid-error');
-    var errText = $('#uid-error span');
-    var uidField = $('#f-uid');
+    /* Decision D2: Unique ID is the only field checked against a value.
+       Name and email are still required to be present, because S5A UC-P01
+       requires access to be attributable to a known person — capturing an
+       empty string would defeat the research instrumentation. Neither is
+       verified beyond presence and basic shape. */
+    var okName  = setFieldError('f-name', 'name-error',
+      name ? null : 'Enter your name so this session can be attributed.');
+    var okEmail = setFieldError('f-email', 'email-error',
+      !email ? 'Enter your email address.'
+             : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? null
+             : 'Enter a valid email address.');
 
-    /* Decision D2: name and email are captured without gating.
-       Unique ID is the only blocking field. */
     var expected = DATA.access.uniqueIdValue;
-    var ok = DATA.access.caseSensitive
+    var matches = DATA.access.caseSensitive
       ? uid === expected
       : uid.toLowerCase() === expected.toLowerCase();
+    var okUid = setFieldError('f-uid', 'uid-error',
+      matches ? null
+              : uid.trim() === '' ? 'Enter the Unique ID you were given.'
+                                  : 'Unique ID not recognised.');
 
-    if (!ok) {
-      errText.textContent = uid.trim() === ''
-        ? 'Enter the Unique ID you were given.'
-        : 'Unique ID not recognised.';
-      errBox.hidden = false;
-      uidField.setAttribute('aria-invalid', 'true');
-      uidField.focus();
+    if (!okName || !okEmail || !okUid) {
+      var first = !okName ? '#f-name' : !okEmail ? '#f-email' : '#f-uid';
+      $(first).focus();
       return;
     }
-
-    errBox.hidden = true;
-    uidField.removeAttribute('aria-invalid');
 
     State.session = { name: name, email: email, enteredAt: new Date().toISOString() };
     State.write(KEY_SESSION, State.session);
@@ -1217,10 +1248,13 @@
 
   function wire() {
     $('#entry-form').addEventListener('submit', submitEntry);
-    $('#f-uid').addEventListener('input', function () {
-      $('#uid-error').hidden = true;
-      this.removeAttribute('aria-invalid');
-    });
+    [['f-name','name-error'], ['f-email','email-error'], ['f-uid','uid-error']]
+      .forEach(function (pair) {
+        $('#' + pair[0]).addEventListener('input', function () {
+          $('#' + pair[1]).hidden = true;
+          this.removeAttribute('aria-invalid');
+        });
+      });
     $('#btn-reset').addEventListener('click', resetDemo);
     $('#btn-viewer').addEventListener('click', exitApp);
 
