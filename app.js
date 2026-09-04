@@ -1418,7 +1418,12 @@
     ot.appendChild(el('span', null,
       'Rejected and deferred items keep their provenance — the source is never erased.'));
     out.appendChild(ot);
-    var ob = el('button', 'btn', 'Back to the issue');
+    /* A facilitator must be able to run this again — a second document, or the
+       failure path — without resetting the whole demo. */
+    var again = el('button', 'btn', 'Try another document');
+    again.type = 'button'; again.dataset.act = 'choose-other';
+    out.appendChild(again);
+    var ob = el('button', 'btn btn-solid', 'Back to the issue');
     ob.type = 'button'; ob.dataset.act = 'back-to-evidence';
     out.appendChild(ob);
     host.appendChild(out);
