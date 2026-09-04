@@ -145,3 +145,33 @@ dependencies, CSS frameworks, UI or charting libraries, Docker, or any build ste
 | Browsers | Chrome ✅ Edge ✅ Safari ⚠ unverified |
 | Build step | None. Repository root is the deployed site |
 | Assets | 1.6 MB of photography, 48 KB font, no CDN |
+
+---
+
+## 6. DECISIONS SINCE — 2026-09-04
+
+| Item | Resolution |
+|---|---|
+| §3.1 Name and email mandatory | **Ratified.** A1 stands as built. |
+| §3.2 Typeface | **Accepted.** Self-hosted Inter confirmed. |
+| §3.3 Safari | **Accepted as unverified.** Will be covered by participant feedback. |
+| §3.4 Research capture | **Superseded** by the access log below. In-browser `strataEvents()` stays as-is for behavioural events. |
+| §3.5 Failure demo visibility | **No change.** The control stays visible on the Document Select screen. |
+| §3.6 Portfolio | **No date set.** |
+| **New — access logging** | **Built.** Name, email, timestamp, IP, country and user agent to a Google Sheet via a Cloudflare Pages Function. See `ACCESS_LOGGING.md`. Requires four setup steps from Edwin before it records anything. |
+
+### Recorded scope exception
+Access logging adds a **serverless function**, which S5A and S6A exclude. This is a
+deliberate founder exception, not scope drift. The browser still makes zero external
+requests — the Google call happens server-side.
+
+### Recorded risk — accepted
+The entry screen still reads *"Your details are recorded only for this research
+session."* That stops being accurate once rows persist in a Sheet, and the record now
+includes an IP address. The founder reviewed the alternatives on 2026-09-04 and chose
+to keep the existing wording. One-line change in `index.html` if that ever shifts.
+
+### Still open
+- **§3.7** Filing the docs into Drive — awaiting a naming convention.
+- **§3.8** Demo script review — contains suggested spoken phrasing.
+- **§3.9** v1 decommission — both stay live by decision.
