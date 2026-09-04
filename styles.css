@@ -770,3 +770,109 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
   .tl-node > .tl-big, .tl-node > .tl-small, .tl-node > .tl-note { grid-column: 2; }
   .tl-note { margin-top: 0; }
 }
+
+/* ============================================================
+   9. R01 — BOARD / COUNCIL DECISION SUMMARY
+   F08: scanning-first — decision required -> urgency/evidence/cost
+   -> why -> recommended action -> export.
+   Panel 08's compact key-value card is embedded near the end.
+   ============================================================ */
+
+.r01 { max-width: 900px; }
+
+.r01-decision {
+  background: var(--navy-900); color: #fff;
+  border-radius: var(--r-lg); padding: 22px 26px; margin-bottom: 16px;
+}
+.r01-decision .lbl {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: #8FB4E8; margin-bottom: 7px;
+}
+.r01-decision h2 {
+  font-size: 21px; font-weight: 650; letter-spacing: -.015em; line-height: 1.3;
+  text-wrap: balance;
+}
+.r01-decision .ctx { margin-top: 9px; font-size: 13.5px; color: #A9BAD4; }
+
+/* Three scanning tiles */
+.r01-tiles {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px; margin-bottom: 16px;
+}
+.r01-tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 15px 17px; box-shadow: var(--sh-1);
+  border-top: 3px solid var(--border-2);
+}
+.r01-tile.t-urgency  { border-top-color: var(--poor-500); }
+.r01-tile.t-evidence { border-top-color: var(--poor-500); }
+.r01-tile.t-cost     { border-top-color: var(--fair-600); }
+.r01-tile .k {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
+}
+.r01-tile .v {
+  font-size: 20px; font-weight: 650; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.r01-tile .s { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+.r01-tile .warn { color: var(--poor-600); }
+
+/* Evidence roll-up inside the brief */
+.r01-ev { display: grid; gap: 8px; }
+.r01-evrow {
+  display: grid; grid-template-columns: minmax(0,1fr) auto auto;
+  gap: 12px; align-items: center;
+  padding: 9px 13px; background: var(--surface-2); border-radius: var(--r-md);
+}
+.r01-evname { font-size: 13px; color: var(--text-2); }
+
+/* Panel 08 compact card */
+.r01-card { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
+.r01-card .hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px 12px;
+}
+.r01-card .hd h3 { font-size: 15px; font-weight: 700; color: var(--blue-700); }
+.r01-kv { padding: 0 20px 8px; }
+.r01-kvrow {
+  display: grid; grid-template-columns: 150px minmax(0,1fr);
+  gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); align-items: baseline;
+}
+.r01-kvrow:last-child { border-bottom: 0; }
+.r01-kvrow dt { font-size: 12.5px; color: var(--muted); }
+.r01-kvrow dd { margin: 0; font-size: 14px; font-weight: 600; }
+.r01-kvrow dd.pos { color: var(--good-600); }
+.r01-kvrow dd.neg { color: var(--poor-600); }
+.r01-card .ft { padding: 10px 20px 15px; display: flex; justify-content: flex-end; }
+
+/* Export */
+.r01-export {
+  display: flex; align-items: center; gap: 13px; flex-wrap: wrap;
+  margin-top: 16px; padding: 16px 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.r01-export .note { font-size: 12.5px; color: var(--muted); }
+.export-done {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--good-600); font-weight: 600;
+}
+.export-done .ico { width: 16px; height: 16px; }
+
+@media (max-width: 760px) {
+  .r01-tiles { grid-template-columns: 1fr; }
+  .r01-kvrow { grid-template-columns: 1fr; gap: 2px; }
+  .r01-evrow { grid-template-columns: 1fr; gap: 6px; }
+}
+
+/* Print — the brief is the only thing that should reach paper */
+@media print {
+  .rail, .iw-anchors, .r01-export, .crumb, .link-more { display: none !important; }
+  body { background: #fff; }
+  .app { grid-template-columns: 1fr; }
+  .main { padding: 0; }
+  .r01-decision { background: #fff; color: #000; border: 2px solid #000; }
+  .r01-decision .lbl, .r01-decision .ctx { color: #333; }
+  .card, .r01-card, .r01-tile { box-shadow: none; border-color: #999; break-inside: avoid; }
+}

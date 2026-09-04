@@ -790,6 +790,151 @@
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  /* ---------- RENDER: R01 DECISION SUMMARY ---------------- */
+
+  function renderR01(issueId) {
+    var issue = byId('issues', issueId) || byId('issues', heroIssueId());
+    if (!issue) return;
+    State.issueId = issue.id;
+
+    var prop = byId('properties', issue.propertyId);
+    var asset = byId('assets', issue.assetId);
+    var act = State.action(issue.actionId);
+    var owner = act ? byId('owners', act.ownerId) : null;
+    var q = (DATA.evidenceQuality || {})[issue.id];
+    var bench = DATA.costBenchmark && DATA.costBenchmark.issueId === issue.id ? DATA.costBenchmark : null;
+    var evidence = (issue.evidenceIds || []).map(function (id) { return byId('evidence', id); }).filter(Boolean);
+
+    var cr = $('#r01-crumb'); cr.textContent = '';
+    var back = el('button', null, 'Back to issue');
+    back.type = 'button'; back.dataset.act = 'back-to-issue';
+    cr.appendChild(back);
+    cr.appendChild(icon('chevron-right'));
+    cr.appendChild(el('span', 'here', 'Decision summary'));
+
+    $('#r01-sub').textContent = prop.name + ' · ' + prop.city + ' · prepared ' + fmtDate(DATA.meta.demoToday);
+
+    var host = $('#r01'); host.textContent = '';
+
+    /* 1 — the explicit decision required (F08 leads with this) */
+    var dec = el('div', 'r01-decision');
+    dec.appendChild(el('p', 'lbl', 'Decision required'));
+    /* The action title already leads with a verb, so it states the decision
+       directly under the "Decision required" label. */
+    dec.appendChild(el('h2', null,
+      (act ? act.title : 'Approve the recommended action') +
+      ' at ' + (act ? moneyRange(act.cost) : '—') +
+      ', to be completed before ' + fmtDate(issue.dueDate) + '.'));
+    dec.appendChild(el('p', 'ctx',
+      (asset ? asset.name + ' · ' : '') + 'Current condition ' +
+      (asset ? asset.condition : 'Unknown') + ' · ' + issue.severity + ' priority'));
+    host.appendChild(dec);
+
+    /* 2 — urgency / evidence / cost, scannable at a glance */
+    var tiles = el('div', 'r01-tiles');
+    function tile(cls, k, v, s, warn) {
+      var t = el('div', 'r01-tile ' + cls);
+      t.appendChild(el('div', 'k', k));
+      t.appendChild(el('div', 'v' + (warn ? ' warn' : ''), v));
+      t.appendChild(el('div', 's', s));
+      return t;
+    }
+    tiles.appendChild(tile('t-urgency', 'Urgency',
+      issue.dueInDays + ' days', 'Obligation due ' + fmtDate(issue.dueDate), true));
+    tiles.appendChild(tile('t-evidence', 'Evidence quality',
+      q ? q.label + ' · ' + q.pct + '%' : 'Unknown',
+      'Latest verification 1,176 days old', true));
+    tiles.appendChild(tile('t-cost', 'Cost',
+      act ? moneyRange(act.cost) : '—',
+      'Assessment. Repair exposure ' + moneyRange(issue.exposure), false));
+    host.appendChild(tiles);
+
+    /* 3 — why it matters */
+    var why = el('div', 'card');
+    var wb = el('div', 'block');
+    wb.appendChild(el('h3', null, 'Why this matters'));
+    wb.appendChild(el('p', 'prose', issue.whyItMatters));
+    var cons = el('p', 'prose');
+    cons.style.marginTop = '10px';
+    cons.innerHTML = '<b>Consequence of delay:</b> ' + issue.consequence;
+    wb.appendChild(cons);
+    var unc = el('p', 'quality-why');
+    unc.textContent = 'Uncertainty: ' + issue.uncertainty;
+    wb.appendChild(unc);
+    why.appendChild(wb);
+
+    /* 4 — supporting evidence roll-up */
+    var eb = el('div', 'block');
+    eb.appendChild(el('h3', null, 'Supporting evidence'));
+    var evl = el('div', 'r01-ev');
+    evidence.forEach(function (e) {
+      var doc = byId('documents', e.documentId);
+      var r = el('div', 'r01-evrow');
+      r.appendChild(el('span', 'r01-evname', doc ? doc.name : e.sourceType));
+      r.appendChild(el('span', 'srcage', e.ageLabel || '—'));
+      r.appendChild(estateBadge(e.state));
+      evl.appendChild(r);
+    });
+    eb.appendChild(evl);
+    why.appendChild(eb);
+
+    /* Quote benchmark, where the frozen scope allows it */
+    if (bench) {
+      var bb = el('div', 'block');
+      bb.appendChild(el('h3', null, 'Cost benchmark'));
+      var bp = el('p', 'prose');
+      bp.innerHTML = 'One example quote of <b>' + money(bench.exampleQuote.amount) +
+        '</b> sits <b>' + bench.verdict + '</b> the local expected range of <b>' +
+        moneyRange(bench.expectedRange) + '</b>.';
+      bb.appendChild(bp);
+      bb.appendChild(el('p', 'quality-why', bench.source + '. ' + bench.assumptions));
+      why.appendChild(bb);
+    }
+    host.appendChild(why);
+
+    /* 5 — recommended action, in panel 08's compact card form */
+    var card = el('div', 'r01-card');
+    card.style.marginTop = '16px';
+    var hd = el('div', 'hd');
+    hd.appendChild(el('h3', null, 'Decision Summary'));
+    card.appendChild(hd);
+
+    var kv = el('dl', 'r01-kv');
+    function kvrow(k, v, tone) {
+      var r = el('div', 'r01-kvrow');
+      r.appendChild(el('dt', null, k));
+      r.appendChild(el('dd', tone || null, v));
+      kv.appendChild(r);
+    }
+    kvrow('Recommendation', act ? act.title : '—');
+    kvrow('Decision', act && act.status !== 'Recommended' ? act.status : 'Awaiting decision',
+      act && act.status !== 'Recommended' ? 'pos' : 'neg');
+    kvrow('Owner', owner ? owner.name + ' (' + owner.role + ')' : 'Unassigned');
+    kvrow('Due date', act ? fmtDate(act.targetDate) : '—');
+    kvrow('Est. cost', act ? moneyRange(act.cost) : '—');
+    kvrow('Status', act && act.deferred ? 'Deferred — issue remains open' : 'Active',
+      act && act.deferred ? 'neg' : 'pos');
+    kvrow('Confidence', act ? act.cost.confidence : '—', 'pos');
+    card.appendChild(kv);
+
+    var ft = el('div', 'ft');
+    var hist = el('button', 'link-more', 'View full history');
+    hist.type = 'button'; hist.dataset.act = 'back-to-issue';
+    hist.appendChild(icon('chevron-right'));
+    ft.appendChild(hist);
+    card.appendChild(ft);
+    host.appendChild(card);
+
+    /* 6 — simulated export */
+    var exp = el('div', 'r01-export');
+    var btn = el('button', 'btn btn-solid', 'Export PDF');
+    btn.type = 'button'; btn.dataset.act = 'export';
+    exp.appendChild(btn);
+    exp.appendChild(el('span', 'note',
+      'Simulated. No file is generated and nothing leaves this browser.'));
+    host.appendChild(exp);
+  }
+
   /* ---------- ACTIONS ------------------------------------- */
 
   function submitEntry(ev) {
@@ -858,7 +1003,7 @@
 
   /* ---------- ROUTER -------------------------------------- */
 
-  var PAGES = ['attention', 'property', 'issue'];
+  var PAGES = ['attention', 'property', 'issue', 'summary'];
   var SECTIONS = ['why', 'evidence', 'action'];
 
   function heroIssueId() {
@@ -874,6 +1019,8 @@
       target = '#/issue/' + (issueId || State.issueId || heroIssueId()) + '/' + route;
     } else if (route === 'issue') {
       target = '#/issue/' + (issueId || State.issueId || heroIssueId()) + '/' + (section || 'why');
+    } else if (route === 'summary') {
+      target = '#/summary/' + (issueId || State.issueId || heroIssueId());
     } else {
       target = '#/' + (PAGES.indexOf(route) !== -1 ? route : 'attention');
     }
@@ -901,6 +1048,7 @@
     });
 
     if (page === 'property') { renderP00(); window.scrollTo(0, 0); }
+    else if (page === 'summary') { window.scrollTo(0, 0); renderR01(parts[1]); }
     else if (page === 'issue') {
       var id = parts[1] || heroIssueId();
       var section = SECTIONS.indexOf(parts[2]) !== -1 ? parts[2] : 'why';
@@ -915,6 +1063,7 @@
     renderA01();
     if (State.route === 'property') renderP00();
     if (State.route === 'issue') renderIssue(State.issueId, 'why');
+    if (State.route === 'summary') renderR01(State.issueId);
   }
 
   /* ---------- BOOT ---------------------------------------- */
@@ -1005,6 +1154,21 @@
     openDialog('dlg-source');
   }
 
+  /* Export is simulated. Nothing is generated and nothing is downloaded —
+     the viewer's sandbox would block a real download anyway, and S5A puts
+     production document generation out of scope. */
+  function simulateExport(btn) {
+    var host = btn.parentNode;
+    host.textContent = '';
+    var done = el('div', 'export-done');
+    done.appendChild(icon('check-circle'));
+    done.appendChild(document.createTextNode(
+      'Decision summary prepared for board circulation.'));
+    host.appendChild(done);
+    host.appendChild(el('span', 'note',
+      'Simulated export — in the product this would produce a PDF.'));
+  }
+
   function currentIssue() {
     return byId('issues', State.issueId) || byId('issues', heroIssueId());
   }
@@ -1054,9 +1218,9 @@
         var issue = currentIssue();
         if (act.dataset.act === 'assign') openAssign(issue);
         else if (act.dataset.act === 'defer') openDefer(issue);
-        else if (act.dataset.act === 'summary') {
-          console.info('[nav] decision summary — R01 lands in Wave 3');
-        }
+        else if (act.dataset.act === 'summary') go('summary', issue.id);
+        else if (act.dataset.act === 'back-to-issue') go('issue', issue.id, 'action');
+        else if (act.dataset.act === 'export') simulateExport(act);
       }
     });
 
