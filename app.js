@@ -92,6 +92,38 @@
     }
   };
 
+  /* ---------- RESEARCH INSTRUMENTATION -------------------- */
+  /* S10A F09: lightweight events only — entry, first attention click,
+     evidence opened, action chosen, companion opened/completed, reset,
+     with timestamps. No clickstream, no analytics product, nothing sent
+     anywhere. S8A F10 keeps this out of the participant-facing UI, so it
+     lives in localStorage and is read by the facilitator afterwards via
+     strataEvents() in the console. */
+  var KEY_EVENTS = 'strata.v2.events';
+  var seenEvents = {};
+
+  function track(name, detail) {
+    try {
+      var log = JSON.parse(localStorage.getItem(KEY_EVENTS) || '[]');
+      log.push({ e: name, d: detail || null, t: new Date().toISOString() });
+      localStorage.setItem(KEY_EVENTS, JSON.stringify(log.slice(-200)));
+    } catch (e) { /* private mode — instrumentation is never load-bearing */ }
+  }
+  function trackOnce(name, detail) {
+    if (seenEvents[name]) return;
+    seenEvents[name] = true;
+    track(name, detail);
+  }
+  window.strataEvents = function () {
+    try { return JSON.parse(localStorage.getItem(KEY_EVENTS) || '[]'); }
+    catch (e) { return []; }
+  };
+  window.strataEventsClear = function () {
+    try { localStorage.removeItem(KEY_EVENTS); } catch (e) {}
+    seenEvents = {};
+    return 'cleared';
+  };
+
   /* ---------- HELPERS ------------------------------------- */
 
   var $  = function (s, r) { return (r || document).querySelector(s); };
@@ -1132,6 +1164,7 @@
         if (i === steps.length - 1) {
           Doc.timers.push(setTimeout(function () {
             Doc.phase = 'review';
+            track('companion_completed_documents', { documentId: Doc.docId });
             renderDocuments();
           }, 500));
         }
@@ -1668,6 +1701,7 @@
     $('#insp-sub').textContent = 'The field observation becomes an attention item with a recommended next step.';
 
     /* The demo state records that this attention item now exists. */
+    trackOnce('companion_completed_inspection', null);
     State.overlay.inspection = Object.assign({}, State.overlay.inspection, {
       completed: true, assetId: Insp.assetId, observation: Insp.observation,
       condition: Insp.condition, nextStep: Insp.nextStep
@@ -1963,6 +1997,7 @@
 
     State.session = { name: name, email: email, enteredAt: new Date().toISOString() };
     State.write(KEY_SESSION, State.session);
+    track('entry', { name: name, email: email });
     enterApp();
     go('attention');
   }
@@ -1990,6 +2025,7 @@
     /* Reset restores the canonical baseline but keeps the viewer signed in,
        so a facilitator resetting mid-demo is not thrown back to the gate.
        "Exit prototype" (the viewer button) clears the session. */
+    track('reset', null);
     State.resetDemo();
     clearDocTimers();
     Doc.phase = 'select'; Doc.docId = null; Doc.fileName = null;
@@ -2052,6 +2088,9 @@
       else b.removeAttribute('aria-current');
     });
 
+    if (page === 'documents' || page === 'inspection' || page === 'completion') {
+      trackOnce('companion_opened_' + page, null);
+    }
     if (page === 'property') { renderP00(); window.scrollTo(0, 0); }
     else if (page === 'summary') { window.scrollTo(0, 0); renderR01(parts[1]); }
     else if (page === 'documents') { window.scrollTo(0, 0); renderDocuments(); }
@@ -2203,7 +2242,11 @@
       if (nav) { go(nav.dataset.route); return; }
 
       var iss = t.closest('[data-issue]');
-      if (iss) { go('issue', iss.dataset.issue, 'why'); return; }
+      if (iss) {
+        trackOnce('first_attention_click', { issueId: iss.dataset.issue });
+        track('attention_click', { issueId: iss.dataset.issue });
+        go('issue', iss.dataset.issue, 'why'); return;
+      }
 
       var anchor = t.closest('.iw-anchor');
       if (anchor) {
@@ -2219,6 +2262,7 @@
 
       var src = t.closest('[data-doc]');
       if (src) {
+        track('evidence_opened', { documentId: src.dataset.doc });
         var badge = src.querySelector('.estate');
         openSource(src.dataset.doc, badge ? badge.textContent : null);
         return;
@@ -2273,8 +2317,8 @@
       var act = t.closest('[data-act]');
       if (act) {
         var issue = currentIssue();
-        if (act.dataset.act === 'assign') openAssign(issue);
-        else if (act.dataset.act === 'defer') openDefer(issue);
+        if (act.dataset.act === 'assign') { track('action_chosen', { choice: 'assign' }); openAssign(issue); }
+        else if (act.dataset.act === 'defer') { track('action_chosen', { choice: 'defer' }); openDefer(issue); }
         else if (act.dataset.act === 'summary') go('summary', issue.id);
         else if (act.dataset.act === 'back-to-issue') go('issue', issue.id, 'action');
         else if (act.dataset.act === 'export') simulateExport(act);
