@@ -65,11 +65,14 @@ CREATE INDEX IF NOT EXISTS idx_access_ts ON access (ts);
 
 The variable name must be exactly `ACCESS_DB` — that is what the code looks for.
 
-**b. Variables and Secrets** → **Add variable**, Production, type **Secret**:
+**b. Variables and Secrets** → **Add variable**, Production:
 
-| Name | Value |
-|---|---|
-| `LOG_TOKEN` | `6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7` |
+| Name | Value | Type |
+|---|---|---|
+| `LOG_TOKEN` | `6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7` | **Secret** |
+| `LOG_MAX_ROWS` | `1000` | Text — *optional, this is the default* |
+
+`LOG_MAX_ROWS` only needs adding if you want a window other than 1000.
 
 **c. Redeploy.** Deployments → latest → **Retry deployment**. Bindings attach at deploy
 time, so the running deployment will not see them otherwise. This is the step people
@@ -100,6 +103,29 @@ it exists.
 
 There is deliberately **no delete endpoint**. Clearing the log is done from the D1
 console, so it cannot happen by accident or by anyone holding the read token.
+
+---
+
+## Rolling window — oldest entries fall off
+
+The table is capped at **1000 rows**. Every insert runs in the same transaction as a
+prune that deletes anything older than the newest 1000, so the table can never exceed
+the cap even if nobody maintains it.
+
+The cut-off is found by looking up the id of the 1000th-newest row rather than
+subtracting from the highest id, so it stays correct even after rows have been deleted
+by hand and left gaps in the sequence.
+
+Change the size with `LOG_MAX_ROWS` in Cloudflare — clamped between 10 and 100,000.
+
+> **This is a rolling window, not an archive.** Past 1000 sessions the oldest are gone
+> for good. If you need a permanent record, pull a CSV periodically:
+>
+> ```bash
+> curl -s ".../api/log?token=...&format=csv&limit=1000" -o access-log-$(date +%F).csv
+> ```
+>
+> Or just ask me to do it and file it in Drive.
 
 ---
 

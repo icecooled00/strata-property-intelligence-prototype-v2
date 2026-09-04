@@ -11,6 +11,8 @@
  *
  * Bindings:
  *   ACCESS_DB             D1 database binding (required to store anything)
+ * Optional:
+ *   LOG_MAX_ROWS          rolling window size, default 1000
  * Optional legacy:
  *   SHEETS_WEBHOOK_URL    Apps Script /exec URL, if you also want a Sheet
  *   SHEETS_WEBHOOK_TOKEN  shared secret echoed to Apps Script
@@ -20,6 +22,9 @@
  */
 
 const MAX_FIELD = 200;
+
+// Rolling window. Override with the LOG_MAX_ROWS variable in Cloudflare.
+const DEFAULT_MAX_ROWS = 1000;
 
 // Control characters, so nothing can forge a row break downstream.
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
@@ -55,19 +60,39 @@ export async function onRequestPost(context) {
     referer: clean(request.headers.get('Referer') || '')
   };
 
-  // ---- primary store: D1
+  // ---- primary store: D1, kept to a rolling window
   if (env.ACCESS_DB) {
+    const capRaw = parseInt(env.LOG_MAX_ROWS || String(DEFAULT_MAX_ROWS), 10);
+    const cap = Math.min(Math.max(isNaN(capRaw) ? DEFAULT_MAX_ROWS : capRaw, 10), 100000);
+
+    const insert = env.ACCESS_DB
+      .prepare(
+        'INSERT INTO access (ts, name, email, ip, country, user_agent, referer) ' +
+        'VALUES (?, ?, ?, ?, ?, ?, ?)'
+      )
+      .bind(record.timestamp, record.name, record.email, record.ip,
+            record.country, record.userAgent, record.referer);
+
+    /* Drop anything older than the newest `cap` rows. Finding the cut-off by
+       id rather than by MAX(id) - cap keeps it correct even after manual
+       deletes have left gaps in the sequence. */
+    const prune = env.ACCESS_DB
+      .prepare(
+        'DELETE FROM access WHERE id < ' +
+        '(SELECT MIN(id) FROM (SELECT id FROM access ORDER BY id DESC LIMIT ?))'
+      )
+      .bind(cap);
+
     try {
-      await env.ACCESS_DB
-        .prepare(
-          'INSERT INTO access (ts, name, email, ip, country, user_agent, referer) ' +
-          'VALUES (?, ?, ?, ?, ?, ?, ?)'
-        )
-        .bind(record.timestamp, record.name, record.email, record.ip,
-              record.country, record.userAgent, record.referer)
-        .run();
+      // One transaction, so the prune sees the row just inserted.
+      await env.ACCESS_DB.batch([insert, prune]);
     } catch (err) {
-      console.log('[access] D1 insert failed:', err && err.message);
+      console.log('[access] D1 batch failed, retrying insert alone:', err && err.message);
+      try {
+        await insert.run();
+      } catch (err2) {
+        console.log('[access] D1 insert failed:', err2 && err2.message);
+      }
     }
   } else {
     console.log('[access] ACCESS_DB not bound; record dropped');
