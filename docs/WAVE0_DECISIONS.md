@@ -56,13 +56,21 @@ Served from our own origin, so the "no external request" QA check still passes. 
 > is a hard requirement.
 
 ### D6 — Cloudflare Pages project name
-**`strata-prototype`** → `https://strata-prototype.pages.dev`
+**`strata-property-prototype`** → <https://strata-property-prototype.pages.dev>
 
-Checked 2026-09-03: the subdomain returns NXDOMAIN, so it is unclaimed. Claim it when
-Wave 1 lands an `index.html`; deploying a docs-only repo would serve a 404.
+**Connected and deployed 2026-09-03.** The project was created as
+`strata-property-prototype` rather than the originally proposed `strata-prototype`;
+the deployed name is authoritative.
 
-Fallbacks if taken at signup time: `strata-property-intelligence`, then
-`strata-intelligence-demo`.
+Verified on the live build: site loads, `prototype.json` fetches over HTTPS, the
+referential-integrity check passes, deep hash routes resolve on hard refresh, and
+every network request is same-origin. No build step; the repository root is served
+directly.
+
+Deployment note: Cloudflare returns **200 with an HTML fallback** for missing asset
+paths rather than 404, so the image placeholders currently appear because image
+*decode* fails rather than because the request does. Behaviour is correct either way,
+and the point becomes moot once the photographs land.
 
 ### D7 — Portfolio context
 **Deferred to a later delivery. Omit from Prototype v2 entirely.**
@@ -134,7 +142,7 @@ Envelope             42%   Poor      <- hero asset
 Elevators            55%   Fair
 Fire/Life Safety     85%   Good
 Plumbing             70%   Fair
-Site                 75%   Good
+Site                 75%   Fair
 lastUpdated          Sep 3, 2026
 ```
 

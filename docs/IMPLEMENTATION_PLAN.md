@@ -263,7 +263,7 @@ No orphans. All nine frozen use cases are covered.
 ## 5. 9A2 screen / state inventory
 
 Reconciled across the S9A2 §4 inventory, the S10A §4 build inventory, the
-HANDOFF §3 feature list and the contact-sheet OCR. **21 states.**
+HANDOFF §3 feature list and the contact-sheet OCR. **22 states.**
 
 | ID | State | Contact sheet | Kind |
 |---|---|---|---|
@@ -895,7 +895,7 @@ any build, compile or transpile step.
 
 The product picture is complete and unambiguous. All five governing documents
 plus the HANDOFF were read in full. All nine S5A use cases trace to concrete
-states with concrete mechanisms. All 21 9A2 states are inventoried. The data
+states with concrete mechanisms. All 22 9A2 states are inventoried. The data
 model reconciles across every screen. The stack meets the brief exactly — HTML,
 CSS, vanilla JS, local JSON, `localStorage`, no build, deploys from the
 repository root. The Vancouver requirement is resolved and documented.

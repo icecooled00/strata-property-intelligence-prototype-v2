@@ -557,7 +557,7 @@ a { color: var(--blue-500); }
 }
 .block { padding: 18px 22px; border-bottom: 1px solid var(--border); }
 .block:last-child { border-bottom: 0; }
-.block h3 { font-size: 13.5px; font-weight: 650; margin-bottom: 8px; color: var(--text); }
+.block h2 { font-size: 13.5px; font-weight: 650; margin-bottom: 8px; color: var(--text); }
 .prose { font-size: 14.5px; line-height: 1.62; color: var(--text-2); max-width: 68ch; }
 
 /* "What does this mean?" — F05, on demand, never a chatbot */
@@ -833,7 +833,7 @@ dialog.wide { width: min(760px, calc(100vw - 32px)); }
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 20px 12px;
 }
-.r01-card .hd h3 { font-size: 15px; font-weight: 700; color: var(--blue-700); }
+.r01-card .hd h2 { font-size: 15px; font-weight: 700; color: var(--blue-700); }
 .r01-kv { padding: 0 20px 8px; }
 .r01-kvrow {
   display: grid; grid-template-columns: 150px minmax(0,1fr);

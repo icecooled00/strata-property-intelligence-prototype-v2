@@ -48,7 +48,7 @@
         { "name": "Elevators",        "pct": 55, "status": "Fair" },
         { "name": "Fire/Life Safety", "pct": 85, "status": "Good" },
         { "name": "Plumbing",         "pct": 70, "status": "Fair" },
-        { "name": "Site",             "pct": 75, "status": "Good" }
+        { "name": "Site",             "pct": 75, "status": "Fair" }
       ]
     }
   ],
@@ -165,8 +165,12 @@
       "severity": "Medium",
       "dueDate": "2026-10-10",
       "dueLabel": "Due Oct 10",
+      "dueInDays": 37,
       "oneLineReason": "Annual test due under BC Fire Code.",
-      "evidenceIds": [],
+      "whyItMatters": "The annual fire alarm verification is due on Oct 10, 2026. The 2025 certificate is on file and current, so this is a scheduled obligation rather than a gap.",
+      "consequence": "A missed verification puts the building out of compliance with the BC Fire Code and may affect insurance.",
+      "uncertainty": "None material. The obligation date and prior certificate are both confirmed.",
+      "evidenceIds": ["EV-007"],
       "photoIds": []
     },
     {
@@ -178,8 +182,12 @@
       "severity": "Low",
       "dueDate": "2026-10-05",
       "dueLabel": "Due in 32 days",
+      "dueInDays": 32,
       "oneLineReason": "Scheduled drainage clearing.",
-      "evidenceIds": [],
+      "whyItMatters": "Routine drainage clearing for the parkade is scheduled for Oct 5, 2026. The last service was completed on schedule.",
+      "consequence": "Deferred clearing raises the risk of standing water in the parkade during heavy autumn rainfall.",
+      "uncertainty": "None material.",
+      "evidenceIds": ["EV-008"],
       "photoIds": []
     },
     {
@@ -191,8 +199,12 @@
       "severity": "Low",
       "dueDate": "2026-09-30",
       "dueLabel": "Due Sep 30",
+      "dueInDays": 27,
       "oneLineReason": "Annual backflow prevention test.",
-      "evidenceIds": [],
+      "whyItMatters": "The annual backflow prevention device test is due Sep 30, 2026. The 2025 certificate is on file and was filed with the water purveyor.",
+      "consequence": "An untested device can result in a compliance notice from the water purveyor.",
+      "uncertainty": "None material.",
+      "evidenceIds": ["EV-009"],
       "photoIds": []
     },
     {
@@ -204,8 +216,12 @@
       "severity": "Low",
       "dueDate": "2026-10-15",
       "dueLabel": "Due Oct 15",
+      "dueInDays": 42,
       "oneLineReason": "Seasonal irrigation shutdown and audit.",
-      "evidenceIds": [],
+      "whyItMatters": "Seasonal shutdown and audit of the irrigation system is due before first frost. No record of last season's shutdown has been located.",
+      "consequence": "An un-drained system risks freeze damage to backflow devices and lines over winter.",
+      "uncertainty": "Last season's shutdown record is missing, so current state is not confirmed.",
+      "evidenceIds": ["EV-010"],
       "photoIds": []
     }
   ],
@@ -234,6 +250,22 @@
       "date": "2026-08-12",
       "pages": 4,
       "previewExcerpt": "Car 1 — scheduled maintenance completed 12 Aug 2026."
+    },
+    {
+      "id": "DOC-005",
+      "name": "Fire_Alarm_Verification_2025.pdf",
+      "type": "Compliance certificate",
+      "date": "2025-10-08",
+      "pages": 3,
+      "previewExcerpt": "Annual fire alarm system verification completed in accordance with CAN/ULC-S536. All devices tested and functional. Next verification due October 2026."
+    },
+    {
+      "id": "DOC-006",
+      "name": "Backflow_Test_Certificate_2025.pdf",
+      "type": "Compliance certificate",
+      "date": "2025-09-26",
+      "pages": 2,
+      "previewExcerpt": "Backflow prevention assembly tested and passed. Certificate filed with the water purveyor. Retest due within 12 months."
     },
     {
       "id": "DOC-004",
@@ -302,6 +334,61 @@
       "photoIds": []
     },
     {
+      "id": "EV-007",
+      "issueId": "ISS-003",
+      "documentId": "DOC-005",
+      "sourceType": "Compliance certificate",
+      "date": "2025-10-08",
+      "ageDays": 330,
+      "ageLabel": "330 days old",
+      "state": "Verified",
+      "confidence": 95,
+      "snippet": "Annual fire alarm system verification completed. All devices tested and functional. Next verification due October 2026.",
+      "relation": "Prior year certificate establishing the recurring obligation date.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-008",
+      "issueId": "ISS-004",
+      "documentId": null,
+      "sourceType": "Service record",
+      "date": "2026-04-14",
+      "ageDays": 142,
+      "ageLabel": "142 days old",
+      "state": "Verified",
+      "confidence": 88,
+      "snippet": "Parkade drainage clearing completed. No blockages reported.",
+      "relation": "Most recent completed service for this obligation.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-009",
+      "issueId": "ISS-005",
+      "documentId": "DOC-006",
+      "sourceType": "Compliance certificate",
+      "date": "2025-09-26",
+      "ageDays": 342,
+      "ageLabel": "342 days old",
+      "state": "Verified",
+      "confidence": 94,
+      "snippet": "Backflow prevention assembly tested and passed. Retest due within 12 months.",
+      "relation": "Prior year certificate establishing the retest date.",
+      "photoIds": []
+    },
+    {
+      "id": "EV-010",
+      "issueId": "ISS-006",
+      "documentId": null,
+      "sourceType": "Seasonal shutdown record",
+      "date": null,
+      "ageLabel": null,
+      "state": "Missing",
+      "confidence": null,
+      "snippet": "No record of the 2025 irrigation shutdown has been located.",
+      "relation": "Required to confirm the system was drained last season.",
+      "photoIds": []
+    },
+    {
       "id": "EV-005",
       "issueId": "ISS-002",
       "documentId": "DOC-003",
@@ -331,7 +418,11 @@
 
   "evidenceQuality": {
     "ISS-001": { "label": "Poor", "pct": 38, "reason": "Latest verification is three years old and the current report is unassessed." },
-    "ISS-002": { "label": "Conflicting", "pct": 55, "reason": "Two sources disagree on the completion date." }
+    "ISS-002": { "label": "Conflicting", "pct": 55, "reason": "Two sources disagree on the completion date." },
+    "ISS-003": { "label": "Good", "pct": 88, "reason": "Current certificate on file from the prior verification." },
+    "ISS-004": { "label": "Good", "pct": 82, "reason": "Recent service record on file." },
+    "ISS-005": { "label": "Good", "pct": 86, "reason": "Current certificate on file and filed with the purveyor." },
+    "ISS-006": { "label": "Missing", "pct": 25, "reason": "No shutdown record located for last season." }
   },
 
   "photos": [

@@ -397,8 +397,19 @@
 
     nodes.push({ big: 'Now', small: 'Latest verification', cls: 'is-now',
                  note: primary ? primary.ageLabel : null });
-    nodes.push({ big: 'Due in ' + issue.dueInDays + ' days', small: 'Assessment obligation',
-                 cls: 'is-future is-due' });
+
+    /* Not every issue has a deadline. Print a real one or none at all. */
+    var obl = byId('obligations', issue.obligationId);
+    var dueSmall = obl ? obl.title : 'Next due';
+    if (issue.dueInDays != null) {
+      nodes.push({ big: 'Due in ' + issue.dueInDays + ' days', small: dueSmall,
+                   cls: 'is-future is-due' });
+    } else if (issue.dueDate) {
+      nodes.push({ big: fmtDate(issue.dueDate), small: dueSmall, cls: 'is-future is-due' });
+    }
+
+    /* A single marker is not a timeline. */
+    if (nodes.length < 2) return null;
 
     nodes.forEach(function (n) {
       var node = el('div', 'tl-node ' + n.cls);
@@ -472,8 +483,11 @@
 
     /* Why this matters + on-demand explanation (F05) */
     var b1 = el('div', 'block');
-    b1.appendChild(el('h3', null, 'Why this matters'));
-    b1.appendChild(el('p', 'prose', issue.whyItMatters));
+    var whyText = issue.whyItMatters || issue.oneLineReason;
+    if (whyText) {
+      b1.appendChild(el('h2', null, 'Why this matters'));
+      b1.appendChild(el('p', 'prose', whyText));
+    }
 
     /* F06: 1–2 thumbnails here; the fuller set lives in Evidence. */
     if (photos.length) {
@@ -483,30 +497,36 @@
       b1.appendChild(strip);
     }
 
-    var ex = el('details', 'explain');
-    var sm = el('summary');
-    sm.appendChild(icon('question'));
-    sm.appendChild(document.createTextNode('What does this mean?'));
-    ex.appendChild(sm);
-    var exb = el('div', 'explain-body');
-    exb.appendChild(el('p', null, issue.consequence));
-    var unc = el('p', null, null);
-    unc.style.marginTop = '8px';
-    unc.innerHTML = '<b>Uncertainty:</b> ' + issue.uncertainty;
-    exb.appendChild(unc);
-    ex.appendChild(exb);
-    b1.appendChild(ex);
-    host.appendChild(b1);
+    if (issue.consequence || issue.uncertainty) {
+      var ex = el('details', 'explain');
+      var sm = el('summary');
+      sm.appendChild(icon('question'));
+      sm.appendChild(document.createTextNode('What does this mean?'));
+      ex.appendChild(sm);
+      var exb = el('div', 'explain-body');
+      if (issue.consequence) exb.appendChild(el('p', null, issue.consequence));
+      if (issue.uncertainty) {
+        var unc = el('p');
+        unc.style.marginTop = issue.consequence ? '8px' : '0';
+        unc.appendChild(el('b', null, 'Uncertainty: '));
+        unc.appendChild(document.createTextNode(issue.uncertainty));
+        exb.appendChild(unc);
+      }
+      ex.appendChild(exb);
+      b1.appendChild(ex);
+    }
+    if (b1.childNodes.length) host.appendChild(b1);
 
     /* Context facts */
     var b2 = el('div', 'block');
-    b2.appendChild(el('h3', null, 'Context'));
+    b2.appendChild(el('h2', null, 'Context'));
     var dl = el('dl');
     var rows = [
       ['Property', byId('properties', issue.propertyId).name],
       ['Asset / system', asset ? asset.name : '—'],
       ['Obligation', obl ? obl.title + ' · ' + obl.authority : '—'],
-      ['Current condition', asset ? asset.condition : 'Unknown'],
+      /* Only assert a condition when there is an asset to have one. */
+      ['Current condition', asset ? asset.condition : '—'],
       ['Repair exposure', moneyRange(issue.exposure) +
         (issue.exposure ? '  (' + issue.exposure.confidence.toLowerCase() + ' confidence)' : '')]
     ];
@@ -524,16 +544,19 @@
     host.appendChild(b2);
 
     /* Timeline */
-    var b3 = el('div', 'block');
-    b3.appendChild(el('h3', null, 'History and timing'));
-    b3.appendChild(timeline(issue));
-    host.appendChild(b3);
+    var tl = timeline(issue);
+    if (tl) {
+      var b3 = el('div', 'block');
+      b3.appendChild(el('h2', null, 'History and timing'));
+      b3.appendChild(tl);
+      host.appendChild(b3);
+    }
 
     /* Act now vs defer */
     var chart = riskChart(issue);
     if (chart) {
       var b4 = el('div', 'block');
-      b4.appendChild(el('h3', null, 'Act now vs defer risk'));
+      b4.appendChild(el('h2', null, 'Act now vs defer risk'));
       b4.appendChild(chart);
       host.appendChild(b4);
     }
@@ -548,24 +571,37 @@
 
     /* Tabs */
     var tabs = el('div', 'tabs');
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', 'Evidence views');
     [['photos', 'Inspection Photos'], ['documents', 'Documents'],
      ['history', 'History'], ['notes', 'Notes']].forEach(function (t) {
       var b = el('button', 'tab', t[1]);
+      var selected = EV_TAB === t[0];
       b.type = 'button'; b.dataset.evtab = t[0];
+      b.id = 'evtab-' + t[0];
       b.setAttribute('role', 'tab');
-      b.setAttribute('aria-selected', String(EV_TAB === t[0]));
+      b.setAttribute('aria-selected', String(selected));
+      b.setAttribute('aria-controls', 'evpanel');
+      /* Only the selected tab is a tab stop; arrow keys move between them. */
+      b.tabIndex = selected ? 0 : -1;
       tabs.appendChild(b);
     });
     host.appendChild(tabs);
 
     /* Tab panel */
     var panel = el('div', 'block');
+    panel.id = 'evpanel';
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', 'evtab-' + EV_TAB);
+    panel.tabIndex = 0;
     if (EV_TAB === 'photos') {
       if (photos.length) {
         var strip = el('div', 'photostrip');
-        photos.forEach(function (p) { strip.appendChild(photoThumb(p)); });
-        var more = el('div', 'pthumb pthumb-more', '+6');
-        strip.appendChild(more);
+        var SHOWN = 4;
+        photos.slice(0, SHOWN).forEach(function (p) { strip.appendChild(photoThumb(p)); });
+        if (photos.length > SHOWN) {
+          strip.appendChild(el('div', 'pthumb pthumb-more', '+' + (photos.length - SHOWN)));
+        }
         panel.appendChild(strip);
       } else {
         panel.appendChild(el('p', 'prose', 'No inspection photographs on file for this issue.'));
@@ -596,7 +632,7 @@
     var q = (DATA.evidenceQuality || {})[issue.id];
     if (q) {
       var bq = el('div', 'block');
-      bq.appendChild(el('h3', null, 'Evidence quality'));
+      bq.appendChild(el('h2', null, 'Evidence quality'));
       var row = el('div', 'quality-row');
       var tone = qualityTone(q.pct);
       var word = el('span', 'quality-word q-' + tone);
@@ -618,10 +654,14 @@
 
     /* Sources — every evidence record, including Missing and Unknown */
     var bs = el('div', 'block');
-    bs.appendChild(el('h3', null, 'Source'));
-    var list = el('div', 'srclist');
-    evidence.forEach(function (e) { list.appendChild(sourceRow(e)); });
-    bs.appendChild(list);
+    bs.appendChild(el('h2', null, 'Source'));
+    if (evidence.length) {
+      var list = el('div', 'srclist');
+      evidence.forEach(function (e) { list.appendChild(sourceRow(e)); });
+      bs.appendChild(list);
+    } else {
+      bs.appendChild(el('p', 'prose', 'No source evidence is linked to this item yet.'));
+    }
     host.appendChild(bs);
   }
 
@@ -655,7 +695,7 @@
 
     var b1 = el('div', 'block');
     b1.appendChild(el('p', 'sec-label', 'Recommended action'));
-    var h = el('h3', null, act.title);
+    var h = el('h2', null, act.title);
     h.style.fontSize = '19px';
     h.style.marginBottom = '10px';
     b1.appendChild(h);
@@ -689,7 +729,7 @@
 
     if (bench) {
       var b3 = el('div', 'block');
-      b3.appendChild(el('h3', null, 'Cost context'));
+      b3.appendChild(el('h2', null, 'Cost context'));
       var p = el('p', 'prose');
       p.innerHTML = 'Local expected range <b>' + moneyRange(bench.expectedRange) + '</b>. ' +
         'One example quote of <b>' + money(bench.exampleQuote.amount) + '</b> from ' +
@@ -705,14 +745,14 @@
     var chart2 = riskChart(issue);
     if (chart2) {
       var b4 = el('div', 'block');
-      b4.appendChild(el('h3', null, 'Act now vs defer risk'));
+      b4.appendChild(el('h2', null, 'Act now vs defer risk'));
       b4.appendChild(chart2);
       host.appendChild(b4);
     }
 
     /* Primary actions — one dominant primary (F10) */
     var b5 = el('div', 'block');
-    b5.appendChild(el('h3', null, 'Primary actions'));
+    b5.appendChild(el('h2', null, 'Primary actions'));
     var pa = el('div', 'primary-actions');
     var assign = el('button', 'btn btn-solid', act.status === 'Recommended' ? 'Assign' : 'Reassign');
     assign.type = 'button'; assign.dataset.act = 'assign';
@@ -772,6 +812,7 @@
     hd.appendChild(wrapT);
     hd.appendChild(el('span', 'pill pill-' + sev, issue.severity + ' priority'));
 
+    EV_TAB = 'photos';   /* the tab is per-issue, not global */
     renderIW01(issue);
     renderIW02(issue);
     renderIW03(issue);
@@ -804,7 +845,6 @@
     var q = (DATA.evidenceQuality || {})[issue.id];
     var bench = DATA.costBenchmark && DATA.costBenchmark.issueId === issue.id ? DATA.costBenchmark : null;
     var evidence = (issue.evidenceIds || []).map(function (id) { return byId('evidence', id); }).filter(Boolean);
-
     var cr = $('#r01-crumb'); cr.textContent = '';
     var back = el('button', null, 'Back to issue');
     back.type = 'button'; back.dataset.act = 'back-to-issue';
@@ -841,9 +881,11 @@
     }
     tiles.appendChild(tile('t-urgency', 'Urgency',
       issue.dueInDays + ' days', 'Obligation due ' + fmtDate(issue.dueDate), true));
+    var primaryEv = evidence.filter(function (e) { return e && e.ageLabel; })[0];
     tiles.appendChild(tile('t-evidence', 'Evidence quality',
       q ? q.label + ' · ' + q.pct + '%' : 'Unknown',
-      'Latest verification 1,176 days old', true));
+      primaryEv ? 'Latest verification ' + primaryEv.ageLabel : 'No dated verification on file',
+      true));
     tiles.appendChild(tile('t-cost', 'Cost',
       act ? moneyRange(act.cost) : '—',
       'Assessment. Repair exposure ' + moneyRange(issue.exposure), false));
@@ -852,7 +894,7 @@
     /* 3 — why it matters */
     var why = el('div', 'card');
     var wb = el('div', 'block');
-    wb.appendChild(el('h3', null, 'Why this matters'));
+    wb.appendChild(el('h2', null, 'Why this matters'));
     wb.appendChild(el('p', 'prose', issue.whyItMatters));
     var cons = el('p', 'prose');
     cons.style.marginTop = '10px';
@@ -865,7 +907,7 @@
 
     /* 4 — supporting evidence roll-up */
     var eb = el('div', 'block');
-    eb.appendChild(el('h3', null, 'Supporting evidence'));
+    eb.appendChild(el('h2', null, 'Supporting evidence'));
     var evl = el('div', 'r01-ev');
     evidence.forEach(function (e) {
       var doc = byId('documents', e.documentId);
@@ -881,7 +923,7 @@
     /* Quote benchmark, where the frozen scope allows it */
     if (bench) {
       var bb = el('div', 'block');
-      bb.appendChild(el('h3', null, 'Cost benchmark'));
+      bb.appendChild(el('h2', null, 'Cost benchmark'));
       var bp = el('p', 'prose');
       bp.innerHTML = 'One example quote of <b>' + money(bench.exampleQuote.amount) +
         '</b> sits <b>' + bench.verdict + '</b> the local expected range of <b>' +
@@ -896,7 +938,7 @@
     var card = el('div', 'r01-card');
     card.style.marginTop = '16px';
     var hd = el('div', 'hd');
-    hd.appendChild(el('h3', null, 'Decision Summary'));
+    hd.appendChild(el('h2', null, 'Decision Summary'));
     card.appendChild(hd);
 
     var kv = el('dl', 'r01-kv');
@@ -1249,6 +1291,22 @@
         }
       });
       renderIssue(issue.id, 'action');
+    });
+
+    /* Arrow-key movement within the evidence tablist */
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var tab = e.target.closest && e.target.closest('[data-evtab]');
+      if (!tab) return;
+      var all = $$('[data-evtab]');
+      var i = all.indexOf(tab);
+      var next = all[(i + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+      if (!next) return;
+      e.preventDefault();
+      EV_TAB = next.dataset.evtab;
+      renderIW02(currentIssue());
+      var moved = $('[data-evtab="' + EV_TAB + '"]');
+      if (moved) moved.focus();
     });
 
     window.addEventListener('hashchange', applyRoute);
