@@ -80,7 +80,8 @@
 
     /* Canonical merged with overlay. Canonical is never mutated. */
     action: function (id) {
-      var base = (DATA.actions || []).filter(function (a) { return a.id === id; })[0];
+      var base = (DATA.actions || []).filter(function (a) { return a.id === id; })[0]
+              || (this.overlay.extraActions || []).filter(function (a) { return a.id === id; })[0];
       if (!base) return null;
       var patch = (this.overlay.actions || {})[id] || {};
       return Object.assign({}, base, patch);
@@ -217,12 +218,13 @@
   function renderHealth(prop) {
     var host = $('#a01-health');
     host.textContent = '';
+    var health = derivedHealth(prop);
     var lowest = HEALTH_ORDER.reduce(function (a, b) {
-      return prop.health[b.key] < prop.health[a.key] ? b : a;
+      return health[b.key] < health[a.key] ? b : a;
     });
 
     HEALTH_ORDER.forEach(function (h) {
-      var v = prop.health[h.key];
+      var v = health[h.key];
       var tone = band(v);
       var item = el('div', 'health-item is-' + tone);
       item.setAttribute('role', 'listitem');
@@ -249,9 +251,15 @@
     var host = $('#a01-attn-list');
     host.textContent = '';
 
-    issues.forEach(function (iss) {
+    /* Anything closed during the demo drops below what is still open. */
+    var ordered = issues.filter(function (i) { return !issueResolved(i); })
+      .concat(issues.filter(issueResolved));
+
+    ordered.forEach(function (iss) {
       var sev = (iss.severity || 'Low').toLowerCase();
-      var btn = el('button', 'attn-item sev-' + sev);
+      var resolved = issueResolved(iss);
+      var btn = el('button', 'attn-item sev-' + sev + (resolved ? ' is-resolved' : '') +
+                             (iss.isNew ? ' is-new' : ''));
       btn.type = 'button';
       btn.dataset.issue = iss.id;
 
@@ -259,6 +267,21 @@
       badge.appendChild(icon(
         sev === 'high' ? 'alert' : sev === 'medium' ? 'clock' : 'check-circle'
       ));
+
+      if (resolved && iss.isHero) {
+        /* The hero keeps its prominence but stops shouting once it is closed. */
+        btn.appendChild(badge);
+        var doneMid = el('div');
+        doneMid.appendChild(el('div', 'attn-title', iss.title));
+        doneMid.appendChild(el('div', 'attn-reason',
+          'Closed with evidence. The assessment is on file.'));
+        btn.appendChild(doneMid);
+        btn.appendChild(el('span', 'attn-due', ''));
+        btn.appendChild(el('span', 'pill pill-resolved', 'Resolved'));
+        btn.className = 'attn-item sev-' + sev + ' is-resolved';
+        host.appendChild(btn);
+        return;
+      }
 
       if (iss.isHero) {
         btn.classList.add('is-hero');
@@ -300,7 +323,8 @@
         if (iss.oneLineReason) mid.appendChild(el('div', 'attn-reason', iss.oneLineReason));
         btn.appendChild(mid);
         btn.appendChild(el('span', 'attn-due', iss.dueLabel || ''));
-        btn.appendChild(el('span', 'pill pill-' + sev, iss.severity));
+        if (resolved) btn.appendChild(el('span', 'pill pill-resolved', 'Resolved'));
+        else btn.appendChild(el('span', 'pill pill-' + sev, iss.severity));
       }
 
       host.appendChild(btn);
@@ -327,13 +351,14 @@
 
   function renderA01() {
     var prop = DATA.properties[0];
-    var issues = DATA.issues.filter(function (i) { return i.propertyId === prop.id; });
+    var issues = allIssues().filter(function (i) { return i.propertyId === prop.id; });
+    var openIssues = issues.filter(function (i) { return !issueResolved(i); });
 
     $('#a01-prop-name').textContent = prop.name;
     $('#a01-prop-meta').innerHTML =
       prop.city + '<span class="dot-sep">•</span>' + prop.units + ' Units' +
       '<span class="dot-sep">•</span>Built ' + prop.yearBuilt;
-    $('#a01-attn-count').textContent = 'Top Attention (' + issues.length + ')';
+    $('#a01-attn-count').textContent = 'Top Attention (' + openIssues.length + ')';
     $('#a01-updated').textContent = 'Updated: ' + fmtDate(prop.lastUpdated);
 
     var bld = $('#a01-building');
@@ -424,7 +449,115 @@
 
   function byId(coll, id) {
     if (!id) return null;
-    return (DATA[coll] || []).filter(function (o) { return o.id === id; })[0] || null;
+    var pool = coll === 'issues' ? allIssues() : (DATA[coll] || []);
+    return pool.filter(function (o) { return o.id === id; })[0] || null;
+  }
+
+  /* ---------- DERIVED DEMO STATE ---------------------------
+     The overlay records what the reader changed. These read it back as what
+     the change *means* on the other screens, so a decision taken in one place
+     stops being invisible everywhere else. Canonical data is never mutated;
+     everything here is recomputed at render time and dies with a reset. */
+
+  function allIssues() {
+    return (DATA.issues || []).concat(State.overlay.extraIssues || []);
+  }
+
+  /* Fields the reader accepted off a document. Each one is an unknown that
+     the building no longer has. */
+  function confirmedFields() {
+    var c = State.overlay.candidates || {};
+    return Object.keys(c).filter(function (k) {
+      var st = (c[k] || {}).state;
+      return st === 'Confirmed' || st === 'Edited–Confirmed';
+    }).length;
+  }
+
+  function heroAction() {
+    var h = byId('issues', heroIssueId());
+    return h ? State.action(h.actionId) : null;
+  }
+  function heroCompleted() {
+    var a = heroAction();
+    return !!(a && a.status === 'Completed');
+  }
+
+  /* Evidence is the indicator the whole scenario turns on, so it is the one
+     that has to move when the evidence actually improves. */
+  function derivedHealth(prop) {
+    var h = Object.assign({}, prop.health);
+    h.evidence = Math.min(100, h.evidence + confirmedFields() * 8);
+    if (heroCompleted()) {
+      h.evidence = Math.max(h.evidence, 88);
+      h.overall = Math.min(100, h.overall + 9);
+    }
+    return h;
+  }
+
+  /* The document screen says confirmed intelligence feeds Evidence. It has to
+     be true somewhere the reader can see, so it lands here. */
+  function evidenceQualityFor(issueId) {
+    var q = (DATA.evidenceQuality || {})[issueId];
+    if (!q) return null;
+    var lift = confirmedFields() * 8 + (heroCompleted() && issueId === heroIssueId() ? 30 : 0);
+    if (!lift) return q;
+    var pct = Math.min(100, q.pct + lift);
+    return Object.assign({}, q, {
+      pct: pct,
+      label: pct >= 75 ? 'Good' : pct >= 50 ? 'Fair' : 'Poor'
+    });
+  }
+
+  /* Built from what the reader entered in the wizard, shaped like a canonical
+     issue so every screen can render it without special cases. Replaced rather
+     than appended, so running the inspection twice does not produce twins. */
+  function createInspectionIssue(asset, seed) {
+    var prop = DATA.properties[0];
+    var issueId = seed.id || 'ISS-007';
+    var actionId = 'ACT-' + issueId.replace('ISS-', '');
+    var days = 30;
+    var due = new Date(DATA.meta.demoToday);
+    due.setDate(due.getDate() + days);
+    var dueIso = due.toISOString().slice(0, 10);
+
+    var issue = {
+      id: issueId, propertyId: prop.id, assetId: Insp.assetId,
+      obligationId: null, actionId: actionId, isHero: false, isNew: true,
+      title: (asset ? asset.shortName : seed.title) + ' — ' + Insp.observation,
+      severity: seed.severity || 'Medium',
+      dueDate: dueIso, dueInDays: days, dueLabel: 'Due in ' + days + ' days',
+      oneLineReason: 'Raised from a field observation today. Condition ' +
+                     Insp.condition + '.',
+      whyItMatters: 'A field inspection recorded this directly against the ' +
+        'asset, so it is first-hand rather than inferred. It carries the ' +
+        'inspector’s condition rating and the photograph taken at the time.',
+      consequence: 'Left unwatched, a minor fault becomes a service call at ' +
+        'short notice, usually at a worse price.',
+      uncertainty: 'Based on one visual observation. No engineering assessment ' +
+        'has been carried out.',
+      evidenceIds: [], photoIds: [(DATA.inspection || {}).samplePhotoId].filter(Boolean),
+      exposure: null, funding: null, history: [], actNowVsDefer: null
+    };
+
+    var action = {
+      id: actionId, issueId: issueId,
+      title: Insp.nextStep + ' — ' + (asset ? asset.shortName : seed.title),
+      rationale: 'The inspector’s recommended next step, carried straight ' +
+                 'through from the observation.',
+      ownerId: (DATA.owners[0] || {}).id, targetDate: dueIso, status: 'Recommended',
+      cost: { low: 0, high: 0, currency: 'CAD', confidence: 'Low',
+              note: 'No cost until the next step decides one.' },
+      riskOfDeferral: 'The observation ages without anyone acting on it.',
+      evidenceIds: []
+    };
+
+    State.overlay.extraIssues = [issue];
+    State.overlay.extraActions = [action];
+  }
+
+  function issueResolved(iss) {
+    var a = iss.actionId ? State.action(iss.actionId) : null;
+    return !!(a && a.status === 'Completed');
   }
   function estateKey(s) { return String(s || 'Unknown').toLowerCase().replace(/[^a-z]/g, ''); }
   function estateIcon(s) {
@@ -693,7 +826,7 @@
     host.appendChild(panel);
 
     /* Evidence quality — always visible, below the tab panel (9A2 panel 04) */
-    var q = (DATA.evidenceQuality || {})[issue.id];
+    var q = evidenceQualityFor(issue.id);
     if (q) {
       var bq = el('div', 'block');
       bq.appendChild(el('h2', null, 'Evidence quality'));
@@ -1036,7 +1169,7 @@
     var asset = byId('assets', issue.assetId);
     var act = State.action(issue.actionId);
     var owner = act ? byId('owners', act.ownerId) : null;
-    var q = (DATA.evidenceQuality || {})[issue.id];
+    var q = evidenceQualityFor(issue.id);
     var bench = DATA.costBenchmark && DATA.costBenchmark.issueId === issue.id ? DATA.costBenchmark : null;
     var evidence = (issue.evidenceIds || []).map(function (id) { return byId('evidence', id); }).filter(Boolean);
     var cr = $('#r01-crumb'); cr.textContent = '';
@@ -1805,12 +1938,15 @@
     $('#insp-title').textContent = 'Resulting attention';
     $('#insp-sub').textContent = 'The field observation becomes an attention item with a recommended next step.';
 
-    /* The demo state records that this attention item now exists. */
+    /* This screen used to assert that an attention item had been created while
+       creating nothing, so returning to Attention showed the same six items.
+       Write the item the screen is describing. */
     trackOnce('companion_completed_inspection', null);
     State.overlay.inspection = Object.assign({}, State.overlay.inspection, {
       completed: true, assetId: Insp.assetId, observation: Insp.observation,
       condition: Insp.condition, nextStep: Insp.nextStep
     });
+    createInspectionIssue(asset, r);
     State.saveOverlay();
 
     var card = el('div', 'result-card');
@@ -2052,6 +2188,13 @@
 
     var b3 = el('div', 'block');
     b3.appendChild(el('h2', null, 'Evidence remains linked'));
+    /* These badges describe the sources that were on file *before* the
+       assessment, and they read as a contradiction sitting under a rating of
+       Good. Say which is which rather than quietly restating both. */
+    b3.appendChild(el('p', 'prose',
+      'The prior sources keep the state they were in. They are held as history, ' +
+      'not overwritten — the rating improved because the assessment was ' +
+      'added, not because these changed.'));
     var srcs = el('div', 'srclist');
     (issue.evidenceIds || []).map(function (id) { return byId('evidence', id); })
       .filter(Boolean).forEach(function (e) { srcs.appendChild(sourceRow(e)); });
@@ -2872,9 +3015,8 @@
         else if (w === 'insp-back') { Insp.step = Math.max(Insp.step - 1, 0); renderInspection(); }
         else if (w === 'insp-restart') { resetInspection(); renderInspection(); }
         else if (w === 'insp-view-action') {
-          toast('In the product this opens the recommended action for the new item. ' +
-                'The hero issue is shown here.');
-          go('issue', heroIssueId(), 'action');
+          var made = (State.overlay.extraIssues || [])[0];
+          go('issue', made ? made.id : heroIssueId(), 'action');
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;

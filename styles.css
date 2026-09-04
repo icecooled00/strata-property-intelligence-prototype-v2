@@ -1415,6 +1415,15 @@ dialog.sheet-dialog { width: min(440px, calc(100vw - 24px)); }
   padding: 6px 0 12px; flex-wrap: wrap;
 }
 
+/* An issue closed during the demo, and one created by the field inspection.
+   Both need to read differently from an open item at a glance. */
+.pill-resolved { background: var(--good-050); color: var(--good-600); }
+.attn-item.is-resolved { opacity: .72; }
+.attn-item.is-resolved .attn-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.attn-item.is-resolved:hover { opacity: 1; }
+.attn-item.is-new { box-shadow: inset 3px 0 0 var(--blue-600); }
+.pill-new { background: var(--blue-050); color: var(--blue-700); }
+
 /* Rail entries */
 .rail-foot .rail-btn.is-form { color: #B8CBE4; }
 .rail-foot .rail-btn.is-form:hover { color: #fff; }
