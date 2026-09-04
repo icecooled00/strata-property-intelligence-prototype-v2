@@ -4,24 +4,24 @@
  * Cloudflare Pages Function. Lives at functions/api/access.js, which Pages
  * maps to /api/access automatically. No build step; deployed as-is.
  *
- * Why a function rather than posting to Google from the page:
- *   - the client IP is only visible server-side (CF-Connecting-IP)
- *   - the browser talks to our own origin, so the page still makes zero
- *     external requests and the webhook URL never appears in page source
- *   - junk can be rejected before it reaches the Sheet
+ * Writes to a Cloudflare D1 database bound as ACCESS_DB. The client IP is
+ * only visible server-side (CF-Connecting-IP), which is why this needs a
+ * function rather than posting from the page. The browser only ever talks
+ * to our own origin, so the page still makes zero external requests.
  *
- * Requires one Cloudflare environment variable:
- *   SHEETS_WEBHOOK_URL    the Apps Script /exec URL
- * Optional:
- *   SHEETS_WEBHOOK_TOKEN  shared secret, checked by the Apps Script
+ * Bindings:
+ *   ACCESS_DB             D1 database binding (required to store anything)
+ * Optional legacy:
+ *   SHEETS_WEBHOOK_URL    Apps Script /exec URL, if you also want a Sheet
+ *   SHEETS_WEBHOOK_TOKEN  shared secret echoed to Apps Script
  *
- * If the variable is missing or Google is unreachable this still returns 204.
- * Logging must never be able to block someone entering the prototype.
+ * If nothing is bound this still returns 204. Logging must never be able to
+ * block someone entering the prototype.
  */
 
 const MAX_FIELD = 200;
 
-// Control characters, so nothing can forge a row break inside the Sheet.
+// Control characters, so nothing can forge a row break downstream.
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g;
 
 function clean(value) {
@@ -52,26 +52,41 @@ export async function onRequestPost(context) {
     ip: request.headers.get('CF-Connecting-IP') || '',
     country: request.headers.get('CF-IPCountry') || '',
     userAgent: clean(request.headers.get('User-Agent') || ''),
-    referer: clean(request.headers.get('Referer') || ''),
-    token: env.SHEETS_WEBHOOK_TOKEN || ''
+    referer: clean(request.headers.get('Referer') || '')
   };
 
-  const url = env.SHEETS_WEBHOOK_URL;
-  if (!url) {
-    console.log('[access] SHEETS_WEBHOOK_URL not set; record dropped');
-    return new Response(null, { status: 204 });
+  // ---- primary store: D1
+  if (env.ACCESS_DB) {
+    try {
+      await env.ACCESS_DB
+        .prepare(
+          'INSERT INTO access (ts, name, email, ip, country, user_agent, referer) ' +
+          'VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )
+        .bind(record.timestamp, record.name, record.email, record.ip,
+              record.country, record.userAgent, record.referer)
+        .run();
+    } catch (err) {
+      console.log('[access] D1 insert failed:', err && err.message);
+    }
+  } else {
+    console.log('[access] ACCESS_DB not bound; record dropped');
   }
 
-  try {
-    // Apps Script replies with a redirect to googleusercontent; follow it.
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
-      redirect: 'follow'
-    });
-  } catch (err) {
-    console.log('[access] webhook failed:', err && err.message);
+  // ---- optional: also mirror to a Google Sheet, if configured
+  if (env.SHEETS_WEBHOOK_URL) {
+    try {
+      await fetch(env.SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          Object.assign({}, record, { token: env.SHEETS_WEBHOOK_TOKEN || '' })
+        ),
+        redirect: 'follow'
+      });
+    } catch (err) {
+      console.log('[access] sheet mirror failed:', err && err.message);
+    }
   }
 
   return new Response(null, { status: 204 });

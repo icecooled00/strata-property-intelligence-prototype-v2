@@ -1,154 +1,134 @@
-# VIEWER ACCESS LOGGING — GOOGLE SHEETS SETUP
+# VIEWER ACCESS LOGGING — CLOUDFLARE D1
 
-Records **name, email, timestamp, IP address, country and user agent** to a Google
-Sheet each time someone enters the prototype.
+Records **name, email, timestamp, IP, country and user agent** to a database each time
+someone enters the prototype. Queried from Claude Code, or exported to CSV.
 
-**Status:** code is deployed and live. It does nothing until you complete the four
-steps below — until then the function logs a note and returns quietly, and entry
-works exactly as before.
+**Status:** code deployed and live. It stores nothing until you complete the three
+dashboard steps below. Until then the function logs a note and returns quietly, and
+entry works exactly as before.
 
 ---
 
 ## How it works
 
 ```
-browser  →  POST /api/access                    same origin, no external request
+browser  →  POST /api/access          same origin, no external request
               ↓  Cloudflare Pages Function
               ↓  reads CF-Connecting-IP  (the real client IP)
-              →  Google Apps Script  →  your Sheet
+              →  D1 database
+
+Claude   →  GET /api/log?token=...   →  JSON or CSV
 ```
 
-The browser only ever talks to `strata-property-prototype.pages.dev`. The Google call
-happens server-side, so the page still makes **zero external requests** and the webhook
-URL never appears in page source.
+The browser only ever talks to `strata-property-prototype.pages.dev`. The client IP is
+only visible server-side, which is why this needs a function rather than posting from
+the page.
 
-The client IP is only visible server-side — a static page cannot see its own IP, which
-is why this needs the function rather than posting to Google directly.
-
-**Failure is silent by design.** If the webhook is missing, misconfigured or down, the
-viewer still enters the prototype normally. Logging is never allowed to block a demo.
+**Failure is silent by design.** If the database is unbound or unreachable, the viewer
+still enters the prototype normally. Logging is never allowed to block a demo.
 
 ---
 
-## Step 1 — The Sheet — DONE
+## Step 1 — Create the database
 
-Created 2026-09-04 in the Property Intelligence folder.
+Cloudflare dashboard → **Storage & Databases** → **D1 SQL Database** → **Create**.
 
-**Strata Prototype Access Log**
-<https://docs.google.com/spreadsheets/d/135pYPrAz_gnafxWnBZwbpyKyB_QOzUB9WE5a-tFs0_o/edit>
-File ID `135pYPrAz_gnafxWnBZwbpyKyB_QOzUB9WE5a-tFs0_o`
+Name it **`strata-access`**. Region: whichever is nearest you.
 
-Headers are already in row 1:
+## Step 2 — Create the table
 
-| A | B | C | D | E | F |
-|---|---|---|---|---|---|
-| Timestamp | Name | Email | IP | Country | User agent |
+Open the new database → **Console** tab → paste and **Execute**:
 
-**Worth one glance:** the tab along the bottom should read **`Access Log`**. It was
-created under that name so the CSV conversion would carry it, but the Drive API does
-not expose tab names, so this was not verified. If it reads anything else, rename it —
-or leave it, because the Apps Script falls back to `insertSheet('Access Log')` and will
-create the right tab on first write, leaving these headers on the old one.
-
-## Step 2 — Add the Apps Script
-
-In that Sheet: **Extensions → Apps Script**. Delete anything there and paste this:
-
-```javascript
-// Strata Prototype — access log receiver.
-// This SECRET must match SHEETS_WEBHOOK_TOKEN in Cloudflare. Generated
-// 2026-09-04; regenerate both together if it is ever exposed.
-const SECRET = 'qlRW8jcBSu1USiA5WeVi20XC4qoMVjFN42H54UiJ';
-
-function doPost(e) {
-  try {
-    const d = JSON.parse(e.postData.contents);
-
-    if (SECRET && d.token !== SECRET) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ ok: false, error: 'bad token' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('Access Log') || ss.insertSheet('Access Log');
-
-    sheet.appendRow([
-      d.timestamp || new Date().toISOString(),
-      d.name      || '',
-      d.email     || '',
-      d.ip        || '',
-      d.country   || '',
-      d.userAgent || ''
-    ]);
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+```sql
+CREATE TABLE IF NOT EXISTS access (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts         TEXT NOT NULL,
+  name       TEXT,
+  email      TEXT,
+  ip         TEXT,
+  country    TEXT,
+  user_agent TEXT,
+  referer    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_access_ts ON access (ts);
 ```
 
-The secret is already filled in. Nothing to change — paste it exactly as it is.
+## Step 3 — Bind it, add the read token, redeploy
 
-## Step 3 — Deploy the script
+**Workers & Pages → strata-property-prototype → Settings**.
 
-1. **Deploy → New deployment**
-2. Click the gear beside *Select type* → **Web app**
-3. **Execute as:** *Me*
-4. **Who has access:** **Anyone** — required, because Cloudflare calls it unauthenticated.
-   The shared secret is what protects it.
-5. **Deploy**, then **Authorize access** and accept the permission prompt.
-6. Copy the **Web app URL**. It ends in `/exec`.
+**a. Bindings** → **Add** → **D1 database**:
 
-> Every time you edit the script you must **Deploy → Manage deployments → edit → New
-> version**, or your change will not take effect.
+| Variable name | Database |
+|---|---|
+| `ACCESS_DB` | `strata-access` |
 
-## Step 4 — Add the variables in Cloudflare
+The variable name must be exactly `ACCESS_DB` — that is what the code looks for.
 
-Cloudflare dashboard → **Workers & Pages** → **strata-property-prototype** →
-**Settings** → **Variables and Secrets** → **Add variable**, for the **Production**
-environment:
+**b. Variables and Secrets** → **Add variable**, Production, type **Secret**:
 
 | Name | Value |
 |---|---|
-| `SHEETS_WEBHOOK_URL` | the `/exec` URL from step 3 |
-| `SHEETS_WEBHOOK_TOKEN` | `qlRW8jcBSu1USiA5WeVi20XC4qoMVjFN42H54UiJ` |
+| `LOG_TOKEN` | `6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7` |
 
-Add `SHEETS_WEBHOOK_TOKEN` as an **encrypted** secret rather than plain text.
+**c. Redeploy.** Deployments → latest → **Retry deployment**. Bindings attach at deploy
+time, so the running deployment will not see them otherwise. This is the step people
+miss.
 
-Then **redeploy** — Deployments → the latest one → **Retry deployment**. Variables are
-bound at deploy time, so an existing deployment will not pick them up.
+---
 
-## Step 5 — Test
+## Reading the log
 
-Open the prototype, enter a name, email and `Vancouver`. A row should appear in the
-Sheet within a few seconds.
+Tell me "show me the access log" and I will fetch and format it. Under the hood:
 
-If nothing arrives, check Cloudflare → your project → **Functions** → real-time logs.
-The function prints `[access] SHEETS_WEBHOOK_URL not set` or `[access] webhook failed`
-with the reason.
+```bash
+# everything, newest first
+curl -s "https://strata-property-prototype.pages.dev/api/log?token=6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7"
+
+# last 20
+curl -s ".../api/log?token=...&limit=20"
+
+# since a date
+curl -s ".../api/log?token=...&since=2026-09-01"
+
+# CSV, for dropping into a spreadsheet
+curl -s ".../api/log?token=...&format=csv" -o access-log.csv
+```
+
+Wrong token or missing token returns **404**, not 403 — the endpoint does not confirm
+it exists.
+
+There is deliberately **no delete endpoint**. Clearing the log is done from the D1
+console, so it cannot happen by accident or by anyone holding the read token.
 
 ---
 
 ## What is captured
 
-| Field | Source | Notes |
+| Column | Source | Notes |
 |---|---|---|
-| Timestamp | Function, UTC ISO | |
-| Name | Entry form | Trimmed, control characters stripped, 200 char cap |
-| Email | Entry form | Format-checked in the browser, not verified |
-| IP | `CF-Connecting-IP` | The real client IP |
-| Country | `CF-IPCountry` | Two-letter code from Cloudflare |
-| User agent | Request header | |
+| `ts` | Function, UTC ISO | |
+| `name` | Entry form | Trimmed, control characters stripped, 200 char cap |
+| `email` | Entry form | Format-checked in the browser, not verified |
+| `ip` | `CF-Connecting-IP` | The real client IP |
+| `country` | `CF-IPCountry` | Two-letter code |
+| `user_agent` | Request header | |
+| `referer` | Request header | Usually empty |
 
 Nothing else. No page views, no clickstream, no cookies. The in-browser research events
 (`strataEvents()`) are separate and still never leave the participant's machine.
+
+---
+
+## If you also want a Google Sheet
+
+The code still supports mirroring to one. Set `SHEETS_WEBHOOK_URL` and
+`SHEETS_WEBHOOK_TOKEN` and it writes to both. Not required — D1 is the system of
+record. The Apps Script is in this file's git history at commit `3ef9093` if you
+want it back.
+
+The Sheet **Strata Prototype Access Log** already exists in the Property Intelligence
+folder. Leave it or delete it; nothing depends on it.
 
 ---
 
@@ -160,16 +140,25 @@ The entry screen says:
 
 > *"Your details are recorded only for this research session."*
 
-Once rows persist in a Sheet you keep, that sentence is no longer accurate — the data
-outlives the session, and it now includes an IP address, which is identifiable personal
-data under BC PIPA and PIPEDA.
+Once rows persist in a database you keep, that sentence is no longer accurate — the data
+outlives the session, and it includes an IP address, which is identifiable personal data
+under BC PIPA and PIPEDA.
 
 The founder reviewed the alternatives and chose to keep the existing wording. Recorded
-here so the decision is visible rather than implicit. Changing it later is a one-line
-edit in `index.html`.
+so the decision is visible rather than implicit. Changing it later is a one-line edit in
+`index.html`.
 
 Suggested replacement, if that changes:
 
 > *"Your name, email and access time are recorded so we can follow up about this
 > research session. We also log your IP address for security. Nothing else is
 > collected."*
+
+---
+
+## Scope note
+
+This adds a serverless function and a database, both of which S5A and S6A exclude for
+the Prototype. It is a deliberate, recorded founder exception rather than scope drift.
+The prototype application itself is unchanged: still static, still no build step, still
+zero external requests from the page.
