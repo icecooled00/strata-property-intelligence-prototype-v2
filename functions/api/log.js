@@ -72,7 +72,7 @@ export async function onRequestGet(context) {
     return new Response(header + '\n' + body + '\n', {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="strata-access-log.csv"'
+        'Content-Disposition': 'attachment; filename="premisesense-access-log.csv"'
       }
     });
   }

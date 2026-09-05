@@ -18,7 +18,7 @@ is deliberate — it captures the intended experience, step by step.
 
 Full path takes about 10 minutes, or 3 for the main story.
 
-**Open:** <https://strata-property-prototype.pages.dev>
+**Open:** <https://demo.premisesense.com>
 **Unique ID:** `Vancouver` — capital V, exactly as written
 
 Use a laptop or desktop. It works on a phone, but it was designed for a desk.

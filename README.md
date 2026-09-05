@@ -1,4 +1,4 @@
-# Strata Property Intelligence — Prototype v2
+# Premise Sense — Property Intelligence — Prototype v2
 
 Disposable, zero-dependency static web prototype for guided product demonstrations.
 

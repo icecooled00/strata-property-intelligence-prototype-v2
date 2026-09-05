@@ -1,5 +1,5 @@
 /* ============================================================
-   STRATA PROPERTY INTELLIGENCE — PROTOTYPE V2
+   PREMISE SENSE — PROPERTY INTELLIGENCE — PROTOTYPE V2
    Wave 1: data load, state, router, E01, A01, P00.
 
    Blocks: DATA · STATE · RENDER · ACTIONS · ROUTER

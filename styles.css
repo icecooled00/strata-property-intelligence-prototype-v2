@@ -1,5 +1,5 @@
 /* ============================================================
-   STRATA PROPERTY INTELLIGENCE — PROTOTYPE V2
+   PREMISE SENSE — PROPERTY INTELLIGENCE — PROTOTYPE V2
    Wave 1: design tokens, application shell, E01, A01, P00.
 
    Token values sampled directly from
@@ -163,6 +163,12 @@ a { color: var(--blue-500); }
 .entry-form-side h1 {
   font-size: 25px; font-weight: 650; line-height: 1.22;
   letter-spacing: -.015em; margin-bottom: 8px;
+}
+/* Second line of the greeting: the product's descriptor, deliberately quieter
+   than the name so the name is what registers first. */
+.entry-form-side h1 .h1-sub {
+  display: block; margin-top: 2px;
+  font-size: 19px; font-weight: 500; letter-spacing: -.005em; color: #A9BAD4;
 }
 .entry-lede { color: #A9BAD4; font-size: 13.5px; margin-bottom: 26px; }
 

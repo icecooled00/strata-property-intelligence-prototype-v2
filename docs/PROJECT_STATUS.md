@@ -1,7 +1,7 @@
 # PROTOTYPE V2 — DECISIONS, FIXES AND OUTSTANDING ITEMS
 
 Date: 2026-09-04
-Live: <https://strata-property-prototype.pages.dev>
+Live: <https://demo.premisesense.com>
 Repository: `icecooled00/strata-property-intelligence-prototype-v2`
 
 Waves 0–7 complete. All nine S5A use cases demonstrable. All 22 9A2 states built.

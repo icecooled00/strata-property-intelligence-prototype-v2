@@ -207,7 +207,7 @@ export async function onRequestGet(context) {
     return new Response(header + '\n' + body + '\n', {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="strata-questionnaire.csv"'
+        'Content-Disposition': 'attachment; filename="premisesense-questionnaire.csv"'
       }
     });
   }

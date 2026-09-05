@@ -86,7 +86,7 @@ Tell me "show me the access log" and I will fetch and format it. Under the hood:
 
 ```bash
 # everything, newest first
-curl -s "https://strata-property-prototype.pages.dev/api/log?token=6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7"
+curl -s "https://demo.premisesense.com/api/log?token=6ailH1B8T4mbKbMj1NBhguC6IoMjwFnuT3kTmnT7"
 
 # last 20
 curl -s ".../api/log?token=...&limit=20"
